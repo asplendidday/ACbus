@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "asplendidday@gmail.com",
+    "longName": "ACbus",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "ACbus",
+    "uuid": "660c6e49-5223-4c6f-aaa1-ca80bd8a9a7c",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
