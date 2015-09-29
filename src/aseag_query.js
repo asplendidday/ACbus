@@ -65,20 +65,46 @@ function parseBusStops( response_text ) {
     }
     
     console.log( '[ACbus] Parsed ' + bus_stops.length + ' bus stops.' );
+    return bus_stops;
 }
 
 function updateBusStops() {
     xhrRequest( query_url_stops, 'GET', parseBusStops );
 }
 
-Pebble.addEventListener('ready',
-    function( e ) {
-        console.log( 'Pebble JS ready!' );
+function findClosestBusStopForCoords( coords ) {
+    xhrRequest( query_url_stops, 'GET', function( response_text ) {
+        bus_stops = parseBusStops( response_text );
         
-        updateBusStops();
+        // add code to determine closest bus station here
+    } );
+}
+
+function locationSuccess( pos ) {
+    console.log( '[ACbus] Got new location data. Determining closest bus stop.' );
+    findClosestBusStopForCoords( pos.coords );
+}
+ 
+function locationFailure( err ) {
+    console.log( '[ACbus] An error occured while getting new location data. Error: ' + err );
+}
+
+function determineClosestBusStop() {
+    navigator.geolocation.getCurrentPosition(
+        locationSuccess,
+        locationFailure,
+        { timeout: 15000, maximumAge: 60000 }
+    );
+}
+
+Pebble.addEventListener( 'ready',
+    function( e ) {
+        console.log( '[ACbus] Pebble JS ready!' );
+        
+        determineClosestBusStop();
     } );
 
 Pebble.addEventListener( 'appmessage',
     function( e ) {
-       console.log( 'AppMessage received!' ) ;
+       console.log( '[ACbus] AppMessage received!' ) ;
     } );
