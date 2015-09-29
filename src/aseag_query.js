@@ -1,13 +1,14 @@
 var item_list = 'StopPointName,LineName,DestinationName,EstimatedTime';
-var query_url_stub = 'http://ivu.aseag.de/interfaces/ura/instant_V1?ReturnList=';
-var query_url = query_url_stub +  item_list + '&StopID=100016';
+var query_url_base = 'http://ivu.aseag.de/interfaces/ura/instant_V1?ReturnList=';
+var query_url = query_url_base + item_list + '&StopID=100016';
+var query_url_stops = query_url_base + 'StopPointName,StopID,Longitude,Latitude';
 
 var xhrRequest = function( url, type, callback ) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
-        callback(this.responseText);
+        callback( this.responseText );
     };
-    xhr.open(type, url);
+    xhr.open( type, url );
     xhr.send();
 };
 
@@ -32,11 +33,49 @@ function getBusData() {
         } );
 }
 
+function parseLines( lines ) {
+    return lines.split(/\r?\n/);
+}
+
+function parseLine( line ) {
+    var parsed = line.slice( 1, line.length - 1 );
+    return parsed.split( ',' );
+}
+
+function parseBusStops( response_text ) {
+    console.log( '[ACbus] Parsing bus stops.' );
+    
+    var lines = parseLines( response_text );
+    var bus_stops = [];
+    
+    // first item is not a bus stop
+    for( var i = 1; i < lines.length; ++i )
+    {
+        var parsed_line = parseLine( lines[ i ] );
+        
+        // compare this to the query url for bus stops and its return list params
+        var bus_stop = {
+            name: parsed_line[ 1 ],
+            id:   parsed_line[ 2 ],
+            lon:  parsed_line[ 3 ],
+            lat:  parsed_line[ 4 ]
+        };
+        
+        bus_stops.push( bus_stop );
+    }
+    
+    console.log( '[ACbus] Parsed ' + bus_stops.length + ' bus stops.' );
+}
+
+function updateBusStops() {
+    xhrRequest( query_url_stops, 'GET', parseBusStops );
+}
+
 Pebble.addEventListener('ready',
     function( e ) {
         console.log( 'Pebble JS ready!' );
         
-        getBusData();
+        updateBusStops();
     } );
 
 Pebble.addEventListener( 'appmessage',

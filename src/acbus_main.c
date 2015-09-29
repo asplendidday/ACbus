@@ -1,10 +1,6 @@
 #include <pebble.h>
 
-enum AppMessageIds
-{
-    NEW_BUS_STOP = 1,
-    NEW_BUS = 2
-};
+#define BUS_STOP_UPDATE 0
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
