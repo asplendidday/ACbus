@@ -1,6 +1,7 @@
 {
     "appKeys": {
-        "BUS_STOP_UPDATE": 0
+        "BUS_STOP_DIST": 1,
+        "BUS_STOP_NAME": 0
     },
     "capabilities": [
         "location"

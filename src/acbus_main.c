@@ -1,6 +1,7 @@
 #include <pebble.h>
 
-#define BUS_STOP_UPDATE 0
+#define BUS_STOP_NAME 0
+#define BUS_STOP_DIST 1
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
@@ -24,7 +25,8 @@ static void main_window_unload()
 
 static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
-    
+    APP_LOG( APP_LOG_LEVEL_INFO, "Received new message!" );
+    text_layer_set_text( s_bus_station, "Update received" );
 }
 
 static void inbox_dropped_callback( AppMessageResult reason, void* context )

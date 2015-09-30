@@ -9,8 +9,29 @@ var xhrRequest = function( url, type, callback ) {
         callback( this.responseText );
     };
     xhr.open( type, url );
-    xhr.send();
+    xhr.send( null );
 };
+
+function degToRad( angleInDeg ) {
+    return angleInDeg / 180.0 * Math.PI;
+}
+
+function distance( lon1, lat1, lon2, lat2 ) {
+    var R = 6371000; // earth mean radius
+    var phi1 = degToRad( lat1 );
+    var phi2 = degToRad( lat2 );
+    var deltaPhi = degToRad( lat2 - lat1 );
+    var deltaLambda = degToRad( lon2 - lon1 );
+
+    var a = Math.sin( deltaPhi / 2.0 ) * Math.sin( deltaPhi / 2.0 ) +
+            Math.cos( phi1 ) * Math.cos( phi2 ) *
+            Math.sin( deltaLambda / 2.0 ) * Math.sin( deltaLambda / 2.0 );
+    var c = 2 * Math.atan2( Math.sqrt( a ), Math.sqrt( 1 - a ) );
+
+    var dist = R * c;
+    
+    return dist; // in meters
+}
 
 function getBusData() {
     xhrRequest( query_url, 'GET',
@@ -68,15 +89,43 @@ function parseBusStops( response_text ) {
     return bus_stops;
 }
 
-function updateBusStops() {
-    xhrRequest( query_url_stops, 'GET', parseBusStops );
-}
-
 function findClosestBusStopForCoords( coords ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
-        bus_stops = parseBusStops( response_text );
+        var bus_stops = parseBusStops( response_text );
         
-        // add code to determine closest bus station here
+        var closest_index = -1;
+        var closest_dist = Infinity;
+        
+        for( var i = 0; i < bus_stops.length; ++i ) {
+            var dist = distance( bus_stops[ i ].lon,
+                             bus_stops[ i ].lat,
+                             coords.longitude,
+                             coords.latitude );
+            
+            if( dist < closest_dist ) {
+                closest_index = i;
+                closest_dist = dist;
+            }
+        }
+        
+        console.log( '[ACbus] Closest bus stop ' + bus_stops[ closest_index ].name +
+                     ' found at ' + closest_dist + ' meters distance.' );
+        
+        console.log( '[ACbus] Issuing send of new bus stop data.' );
+        
+        // @TODO bus stop name must not contain German Umlaute
+        var bus_stop_name = bus_stops[ closest_index ].name;
+        bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
+        var bus_stop_dist = closest_dist;
+        
+        var dict = {
+            'BUS_STOP_NAME': bus_stop_name,
+            'BUS_STOP_DIST': bus_stop_dist
+        };
+        
+        Pebble.sendAppMessage( dict );
+        
+        console.log( '[ACbus] Send bus stop data issued.' );
     } );
 }
 
