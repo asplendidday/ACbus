@@ -33,7 +33,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     char* bus_stop_dist = NULL;
         
     while( t != NULL ) {
-        switch(t->key) {
+        switch( t->key ) {
             case BUS_STOP_NAME:
             bus_stop_name = t->value->cstring;
             break;
@@ -45,7 +45,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
             break;
         }
     
-        t = dict_read_next(iterator);
+        t = dict_read_next( iterator );
     }
     
     char* output = "Closest bus stop\n";

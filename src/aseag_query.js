@@ -117,6 +117,9 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop_name = bus_stops[ closest_index ].name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
         bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
+        bus_stop_name = bus_stop_name.replace( 'ö', 'oe' );
+        bus_stop_name = bus_stop_name.replace( 'ä', 'ae' );
+        bus_stop_name = bus_stop_name.replace( 'ü', 'ue' );
         var bus_stop_dist = Math.round( closest_dist ).toString();
         
         var dict = {
