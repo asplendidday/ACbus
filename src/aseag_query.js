@@ -116,7 +116,8 @@ function findClosestBusStopForCoords( coords ) {
         // @TODO bus stop name must not contain German Umlaute
         var bus_stop_name = bus_stops[ closest_index ].name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
-        var bus_stop_dist = closest_dist;
+        bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
+        var bus_stop_dist = Math.round( closest_dist ).toString();
         
         var dict = {
             'BUS_STOP_NAME': bus_stop_name,

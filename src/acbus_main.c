@@ -26,7 +26,42 @@ static void main_window_unload()
 static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "Received new message!" );
-    text_layer_set_text( s_bus_station, "Update received" );
+      
+    Tuple* t = dict_read_first( iterator );
+   
+    char* bus_stop_name = NULL;
+    char* bus_stop_dist = NULL;
+        
+    while( t != NULL ) {
+        switch(t->key) {
+            case BUS_STOP_NAME:
+            bus_stop_name = t->value->cstring;
+            break;
+            case BUS_STOP_DIST:
+            bus_stop_dist = t->value->cstring;
+            break;
+            default:
+            APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Key %d not recognized!", ( int ) t->key );
+            break;
+        }
+    
+        t = dict_read_next(iterator);
+    }
+    
+    char* output = "Closest bus stop\n";
+    if( bus_stop_name != NULL )
+    {
+        output = strcat( output, bus_stop_name );
+        output = strcat( output, "\nin " );
+    };
+    
+    if( bus_stop_dist != NULL )
+    {
+        output = strcat( output, bus_stop_dist );
+        output = strcat( output, " meters." );
+    }
+    
+    text_layer_set_text( s_bus_station, output );    
 }
 
 static void inbox_dropped_callback( AppMessageResult reason, void* context )
