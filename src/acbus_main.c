@@ -7,9 +7,36 @@
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
 
+static ActionBarLayer* s_action_bar;
+
+
+
+/**********************Action Bar*************************/
+
+void click_config_provider(void *context) {
+  //window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) my_next_click_handler);
+  //window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) my_previous_click_handler);
+}
+
+void load_action_bar(){
+  s_action_bar = action_bar_layer_create();
+  action_bar_layer_add_to_window(s_action_bar, s_main_window);
+  action_bar_layer_set_click_config_provider(s_action_bar, click_config_provider);
+  action_bar_layer_set_background_color(s_action_bar, GColorFromHEX(0xAA0000));
+
+  // Set the icons:
+  // The loading of the icons is omitted for brevity... See gbitmap_create_with_resource()
+  GBitmap *icon_haltestelle = gbitmap_create_with_resource(RESOURCE_ID_ICON_H);
+  action_bar_layer_set_icon_animated(s_action_bar, BUTTON_ID_SELECT, icon_haltestelle, true);
+  
+  
+}
+/**********************End Action Bar*************************/
+
+
 static void main_window_load()
 {
-    s_bus_station = text_layer_create( GRect( 0, 5, 144, 150 ) );
+    s_bus_station = text_layer_create( GRect( 0, 5, 114, 150 ) );
     text_layer_set_background_color( s_bus_station, GColorClear );
     text_layer_set_text_color( s_bus_station, GColorBlack );
     text_layer_set_text( s_bus_station, "Unknown station." );
@@ -17,6 +44,8 @@ static void main_window_load()
     text_layer_set_text_alignment( s_bus_station, GTextAlignmentCenter );
     
     layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_bus_station ) ); 
+  
+    load_action_bar();
 }
 
 static void main_window_unload()
