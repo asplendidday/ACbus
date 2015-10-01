@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "stops_list_menu.h"
 
 #define BUS_STOP_NAME 0
 #define BUS_STOP_DIST 1
@@ -13,8 +14,12 @@ static ActionBarLayer* s_action_bar;
 
 /**********************Action Bar*************************/
 
+void select_click_handler(){
+  list_message_window_push();
+}
+
 void click_config_provider(void *context) {
-  //window_single_click_subscribe(BUTTON_ID_DOWN, (ClickHandler) my_next_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, (ClickHandler) select_click_handler);
   //window_single_click_subscribe(BUTTON_ID_UP, (ClickHandler) my_previous_click_handler);
 }
 
