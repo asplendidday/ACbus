@@ -1,6 +1,5 @@
-var item_list = 'StopPointName,LineName,DestinationName,EstimatedTime';
 var query_url_base = 'http://ivu.aseag.de/interfaces/ura/instant_V1?ReturnList=';
-var query_url = query_url_base + item_list + '&StopID=100016';
+var query_url_bus = query_url_base + 'StopPointName,LineName,DestinationName,EstimatedTime&StopID=';
 var query_url_stops = query_url_base + 'StopPointName,StopID,Longitude,Latitude';
 
 var xhrRequest = function( url, type, callback ) {
@@ -111,8 +110,6 @@ function findClosestBusStopForCoords( coords ) {
         console.log( '[ACbus] Closest bus stop ' + bus_stops[ closest_index ].name +
                      ' found at ' + closest_dist + ' meters distance.' );
         
-        console.log( '[ACbus] Issuing send of new bus stop data.' );
-        
         var bus_stop_name = bus_stops[ closest_index ].name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
         bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
@@ -161,5 +158,7 @@ Pebble.addEventListener( 'ready',
 
 Pebble.addEventListener( 'appmessage',
     function( e ) {
-       console.log( '[ACbus] AppMessage received!' ) ;
+        console.log( '[ACbus] AppMessage received!' ) ;
+        
+        determineClosestBusStop();
     } );

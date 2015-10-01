@@ -1,7 +1,10 @@
 {
     "appKeys": {
+        "BUS_ONE": 10,
         "BUS_STOP_DIST": 1,
         "BUS_STOP_NAME": 0,
+        "BUS_THREE": 12,
+        "BUS_TWO": 11,
         "GPS_COORDS": 2
     },
     "capabilities": [
@@ -11,13 +14,7 @@
     "longName": "ACbus",
     "projectType": "native",
     "resources": {
-        "media": [
-            {
-                "file": "images/h.png",
-                "name": "ICON_H",
-                "type": "png"
-            }
-        ]
+        "media": []
     },
     "sdkVersion": "3",
     "shortName": "ACbus",
@@ -25,7 +22,7 @@
         "basalt"
     ],
     "uuid": "660c6e49-5223-4c6f-aaa1-ca80bd8a9a7c",
-    "versionLabel": "1.0",
+    "versionLabel": "0.1",
     "watchapp": {
         "watchface": false
     }
