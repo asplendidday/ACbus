@@ -1,7 +1,8 @@
 {
     "appKeys": {
         "BUS_STOP_DIST": 1,
-        "BUS_STOP_NAME": 0
+        "BUS_STOP_NAME": 0,
+        "GPS_COORDS": 2
     },
     "capabilities": [
         "location"

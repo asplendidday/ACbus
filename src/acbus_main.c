@@ -2,13 +2,14 @@
 
 #define BUS_STOP_NAME 0
 #define BUS_STOP_DIST 1
+#define GPS_COORDS    2
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
 
 static void main_window_load()
 {
-    s_bus_station = text_layer_create( GRect( 0, 55, 144, 50 ) );
+    s_bus_station = text_layer_create( GRect( 0, 5, 144, 150 ) );
     text_layer_set_background_color( s_bus_station, GColorClear );
     text_layer_set_text_color( s_bus_station, GColorBlack );
     text_layer_set_text( s_bus_station, "Unknown station." );
@@ -31,7 +32,8 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
    
     char* bus_stop_name = NULL;
     char* bus_stop_dist = NULL;
-        
+    char* gps_coords = NULL;    
+    
     while( t != NULL ) {
         switch( t->key ) {
             case BUS_STOP_NAME:
@@ -39,6 +41,9 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
             break;
             case BUS_STOP_DIST:
             bus_stop_dist = t->value->cstring;
+            break;
+            case GPS_COORDS:
+            gps_coords = t->value->cstring;
             break;
             default:
             APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Key %d not recognized!", ( int ) t->key );
@@ -59,6 +64,12 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     {
         output = strcat( output, bus_stop_dist );
         output = strcat( output, " meters." );
+    }
+    
+    if( gps_coords != NULL )
+    {
+        output = strcat( output, "\ngps coords (lon, lat):\n" );
+        output = strcat( output, gps_coords );
     }
     
     text_layer_set_text( s_bus_station, output );    

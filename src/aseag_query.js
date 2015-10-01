@@ -78,8 +78,8 @@ function parseBusStops( response_text ) {
         var bus_stop = {
             name: parsed_line[ 1 ],
             id:   parsed_line[ 2 ],
-            lon:  parsed_line[ 3 ],
-            lat:  parsed_line[ 4 ]
+            lon:  parsed_line[ 4 ],
+            lat:  parsed_line[ 3 ]
         };
         
         bus_stops.push( bus_stop );
@@ -113,7 +113,6 @@ function findClosestBusStopForCoords( coords ) {
         
         console.log( '[ACbus] Issuing send of new bus stop data.' );
         
-        // @TODO bus stop name must not contain German Umlaute
         var bus_stop_name = bus_stops[ closest_index ].name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
         bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
@@ -121,10 +120,13 @@ function findClosestBusStopForCoords( coords ) {
         bus_stop_name = bus_stop_name.replace( 'ä', 'ae' );
         bus_stop_name = bus_stop_name.replace( 'ü', 'ue' );
         var bus_stop_dist = Math.round( closest_dist ).toString();
+        var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
+        
         
         var dict = {
             'BUS_STOP_NAME': bus_stop_name,
-            'BUS_STOP_DIST': bus_stop_dist
+            'BUS_STOP_DIST': bus_stop_dist,
+            'GPS_COORDS': gps_coords
         };
         
         Pebble.sendAppMessage( dict );
