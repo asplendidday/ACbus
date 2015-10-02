@@ -13,10 +13,10 @@ static TextLayer* s_bus_station = NULL;
 static void main_window_load()
 {
     s_bus_station = text_layer_create( GRect( 0, 0, 144, 18 ) );
-    text_layer_set_background_color( s_bus_station, GColorRed );
+    text_layer_set_background_color( s_bus_station, GColorDarkCandyAppleRed );
     text_layer_set_text_color( s_bus_station, GColorWhite );
-    text_layer_set_font( s_bus_station, fonts_get_system_font( FONT_KEY_GOTHIC_14 ) );
-    text_layer_set_text( s_bus_station, "Unknown bus stop." );
+    text_layer_set_font( s_bus_station, fonts_get_system_font( FONT_KEY_GOTHIC_14_BOLD ) );
+    text_layer_set_text( s_bus_station, "Waiting for first update..." );
     
     
     text_layer_set_text_alignment( s_bus_station, GTextAlignmentLeft );

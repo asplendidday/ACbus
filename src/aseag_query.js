@@ -32,27 +32,6 @@ function distance( lon1, lat1, lon2, lat2 ) {
     return dist; // in meters
 }
 
-function getBusData() {
-    xhrRequest( query_url, 'GET',
-        function( response_text ) {
-            console.log( 'Received new bus data.' );
-            
-            var result = response_text.split(/\r?\n/);
-            var now0 = result[0].split(',')[2];
-            
-            
-            var line = result[4].split(',');
-            var stop = line[1];
-            var bus = line[2];
-            var dir = line[3];
-            var time = new Date(parseInt(line[4].slice(0, line[4].length -1)));
-            var now = new Date().getTime();
-            var eta = Math.floor((time-now)/(1000*60));
-            
-            console.log( stop + "\n" + bus + " to " + dir + " in " + eta + " min." );
-        } );
-}
-
 function parseLines( lines ) {
     return lines.split(/\r?\n/);
 }
@@ -110,7 +89,8 @@ function findClosestBusStopForCoords( coords ) {
         console.log( '[ACbus] Closest bus stop ' + bus_stops[ closest_index ].name +
                      ' found at ' + closest_dist + ' meters distance.' );
         
-        var bus_stop_name = bus_stops[ closest_index ].name;
+        var bus_stop = bus_stops[ closest_index ];
+        var bus_stop_name = bus_stop.name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
         bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
         bus_stop_name = bus_stop_name.replace( 'ö', 'oe' );
@@ -119,16 +99,40 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
-        
-        var dict = {
-            'BUS_STOP_NAME': bus_stop_name,
-            'BUS_STOP_DIST': bus_stop_dist,
-            'GPS_COORDS': gps_coords
-        };
-        
-        Pebble.sendAppMessage( dict );
-        
-        console.log( '[ACbus] Send bus stop data issued.' );
+        xhrRequest( query_url_bus + '100000', 'GET', function( response_text ) {
+            console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
+            
+            var bus_lines = parseLines( response_text );
+            var busses = [];
+            
+            console.log( '[ACbus] Found ' + ( bus_lines.length - 1 ) + " busses." );
+            
+            var global_now = parseLine( bus_lines[ 0 ] )[ 2 ];
+            
+            for( var i = 1; i < bus_lines.length; ++i ) {
+                var bus_line = parseLine( bus_lines[ i ] );
+                
+                var bus = {
+                    number: bus_line[ 2 ],
+                    dest:   bus_line[ 3 ],
+                    eta:    Math.round( ( bus_line[ 4 ] - global_now ) / ( 1000 * 60 ) )
+                };
+                
+                console.log( i + " #: " + bus.number + ", dest: " + bus.dest + ", eta (mins): " + bus.eta );
+                
+                busses.push( bus );
+            }
+            
+            var dict = {
+                'BUS_STOP_NAME': bus_stop_name,
+                'BUS_STOP_DIST': bus_stop_dist,
+                'GPS_COORDS': gps_coords
+            };
+            
+            Pebble.sendAppMessage( dict );
+            
+            console.log( '[ACbus] Send bus stop data issued.' );
+        } );
     } );
 }
 
