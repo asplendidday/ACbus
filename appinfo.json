@@ -14,7 +14,13 @@
     "longName": "ACbus",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/h.png",
+                "name": "ICON_H",
+                "type": "png"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "ACbus",

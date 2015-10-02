@@ -9,20 +9,39 @@
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
+static TextLayer* s_next_station = NULL;
 static TextLayer* s_busses = NULL;
+static BitmapLayer* s_banner = NULL;
+
+
+static void update_proc(Layer *layer, GContext *ctx) {
+    graphics_context_set_fill_color(ctx, GColorDarkCandyAppleRed);
+    graphics_fill_rect(ctx, GRect(0, 0, 144, 25), 0, GCornerNone);
+    graphics_fill_rect(ctx, GRect(0, 148, 144, 20), 0, GCornerNone);
+}
 
 static void main_window_load()
 {
-    s_bus_station = text_layer_create( GRect( 0, 0, 144, 18 ) );
+ 
+    s_bus_station = text_layer_create( GRect( 24, 0, 144, 20 ) );
     text_layer_set_background_color( s_bus_station, GColorDarkCandyAppleRed );
     text_layer_set_text_color( s_bus_station, GColorWhite );
-    text_layer_set_font( s_bus_station, fonts_get_system_font( FONT_KEY_GOTHIC_14_BOLD ) );
+    text_layer_set_font( s_bus_station, fonts_get_system_font( FONT_KEY_GOTHIC_18_BOLD ) );
     text_layer_set_text( s_bus_station, "Waiting for first update..." );
     text_layer_set_text_alignment( s_bus_station, GTextAlignmentLeft );
-    
+  
     layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_bus_station ) ); 
-    
-    s_busses = text_layer_create( GRect( 0, 20, 144, 140 ) );
+  
+    s_next_station = text_layer_create( GRect( 0, 148, 144, 20 ) );
+    text_layer_set_background_color( s_next_station, GColorDarkCandyAppleRed );
+    text_layer_set_text_color( s_next_station, GColorWhite );
+    text_layer_set_font( s_next_station, fonts_get_system_font( FONT_KEY_GOTHIC_14 ) );
+    text_layer_set_text( s_next_station, "next" );
+    text_layer_set_text_alignment( s_next_station, GTextAlignmentCenter );
+
+    layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_next_station ) ); 
+  
+    s_busses = text_layer_create( GRect( 5, 28, 144, 120 ) );
     text_layer_set_background_color( s_busses, GColorWhite );
     text_layer_set_text_color( s_busses, GColorBlack );
     text_layer_set_font( s_busses, fonts_get_system_font( FONT_KEY_GOTHIC_14 ) );
@@ -30,6 +49,18 @@ static void main_window_load()
     text_layer_set_text_alignment( s_bus_station, GTextAlignmentLeft );
     
     layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_busses ) ); 
+      
+    GBitmap* h_icon = gbitmap_create_with_resource(RESOURCE_ID_ICON_H);
+    s_banner = bitmap_layer_create(GRect(3, 3, 18, 18));
+    bitmap_layer_set_compositing_mode(s_banner, GCompOpSet);
+    bitmap_layer_set_background_color(s_banner, GColorClear);
+    bitmap_layer_set_bitmap(s_banner, h_icon);   
+  
+    layer_add_child(window_get_root_layer(s_main_window), bitmap_layer_get_layer(s_banner));
+    layer_set_update_proc(window_get_root_layer (s_main_window), update_proc);
+      
+
+  
 }
 
 static void main_window_unload()
