@@ -103,6 +103,7 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
+        //bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
         xhrRequest( query_url_bus + bus_stop_id, 'GET', function( response_text ) {
             console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
             
@@ -119,10 +120,8 @@ function findClosestBusStopForCoords( coords ) {
                 var bus = {
                     number: bus_line[ 2 ].slice( 1, bus_line[ 2 ].length - 1 ),
                     dest:   bus_line[ 3 ].slice( 1, bus_line[ 3 ].length - 1 ),
-                    eta:    Math.round( ( bus_line[ 4 ] - global_now ) / ( 1000 * 60 ) )
+                    eta:    bus_line[ 4 ] - global_now
                 };
-                
-                console.log( i + " #: " + bus.number + ", dest: " + bus.dest + ", eta (mins): " + bus.eta );
                 
                 busses.push( bus );
             }
@@ -130,25 +129,28 @@ function findClosestBusStopForCoords( coords ) {
             busses.sort( function( lhs, rhs ) {
                 return lhs.eta - rhs.eta;
             } );
-                
-            var bus_one = busses[ 0 ].number + "  " + busses[ 0 ].dest + "\n" + busses[ 0 ].eta.toString() + " mins";
-            bus_one = killUmlauts( bus_one );
-            var bus_two = busses[ 1 ].number + "  " + busses[ 1 ].dest + "\n" + busses[ 1 ].eta.toString() + " mins";
-            bus_two = killUmlauts( bus_two );
-            var bus_three = busses[ 2 ].number + "  " + busses[ 2 ].dest + "\n" + busses[ 2 ].eta.toString() + " mins";
-            bus_three = killUmlauts( bus_three );
+
+            var num_buses = Math.min( 7, busses.length );
+            var bus_data = "";
             
-            console.log( bus_one );
-            console.log( bus_two );
-            console.log( bus_three );
+            for( var j = 0; j < num_buses; ++j ) {
+                bus_data += busses[ j ].number + ';' +
+                            busses[ j ].dest + ';' +
+                            Math.round( busses[ j ].eta / ( 1000 * 60 ) );
+                if( j + 1 < num_buses ) {
+                    bus_data += ";";
+                }
+            }
+            
+            bus_data = killUmlauts( bus_data );
+         
+            console.log( bus_data );
             
             var dict = {
                 'BUS_STOP_NAME': bus_stop_name,
                 'BUS_STOP_DIST': bus_stop_dist,
                 'GPS_COORDS': gps_coords,
-                'BUS_ONE': bus_one,
-                'BUS_TWO': bus_two,
-                'BUS_THREE': bus_three
+                'BUS_DATA': bus_data
             };
             
             Pebble.sendAppMessage( dict );

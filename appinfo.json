@@ -1,10 +1,8 @@
 {
     "appKeys": {
-        "BUS_ONE": 10,
+        "BUS_DATA": 3,
         "BUS_STOP_DIST": 1,
         "BUS_STOP_NAME": 0,
-        "BUS_THREE": 12,
-        "BUS_TWO": 11,
         "GPS_COORDS": 2
     },
     "capabilities": [

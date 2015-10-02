@@ -3,9 +3,7 @@
 #define BUS_STOP_NAME 0
 #define BUS_STOP_DIST 1
 #define GPS_COORDS    2
-#define BUS_ONE       10
-#define BUS_TWO       11
-#define BUS_THREE     12
+#define BUS_DATA      3
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
@@ -20,10 +18,18 @@ static BitmapLayer* s_banner = NULL;
 #define BUS_ENTRY_DEST_WIDTH 102
 #define BUS_ENTRY_ETA_WIDTH 18
     
+#define LINE_BUFFER_SIZE 6
+#define DEST_BUFFER_SIZE 32
+#define ETA_BUFFER_SIZE 6
+    
 struct {
     TextLayer* line;
     TextLayer* dest;
     TextLayer* eta;
+    
+    char line_string[ LINE_BUFFER_SIZE ];
+    char dest_string[ DEST_BUFFER_SIZE ];
+    char eta_string[ ETA_BUFFER_SIZE ];
 } s_buses[ NUM_BUSES ];
 
 static void create_text_layer( TextLayer** text_layer, GRect rect, GColor back_color, GColor text_color, const char* font_name, GTextAlignment text_align )
@@ -122,6 +128,60 @@ static void main_window_unload()
     text_layer_destroy( s_bus_station );
 }
 
+static const char* find_next_separator( const char* cursor, const char separator )
+{
+    while( *cursor != separator && *cursor != '\0' )
+    {
+        ++cursor;
+    }
+    return cursor;    
+}
+
+static const char* read_bus_item( const char* bus_data, char* target, int max_bytes )
+{
+    const char* end_cursor = find_next_separator( bus_data, ';' );
+    
+    if( *end_cursor == '\0' ) return end_cursor;
+    
+    int num_bytes = end_cursor - bus_data;
+    // save one byte for trailing \0
+    num_bytes = num_bytes > max_bytes - 1 ? max_bytes - 1 : num_bytes;
+    
+    memcpy( target, bus_data, num_bytes );
+    target[ num_bytes ] = '\0';
+    
+    APP_LOG( APP_LOG_LEVEL_INFO, "%s", target );
+    
+    return ++end_cursor;
+}
+
+static void parse_bus_data( const char* bus_data )
+{   
+    APP_LOG( APP_LOG_LEVEL_INFO, "%s", bus_data );
+
+    for( int i = 0; i < NUM_BUSES; ++i )
+    {
+        // clear buffers
+        s_buses[ i ].line_string[ 0 ] = s_buses[ i ].dest_string[ 0 ] = s_buses[ i ].eta_string[ 0 ] = '\0';
+        
+        if( *bus_data != '\0' ) // eof reached?
+        {
+            // read line
+            bus_data = read_bus_item( bus_data, s_buses[ i ].line_string, LINE_BUFFER_SIZE );
+            // read destination
+            bus_data = read_bus_item( bus_data, s_buses[ i ].dest_string, DEST_BUFFER_SIZE );
+            // read eta
+            bus_data = read_bus_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
+        }
+        
+        // set texts layers
+        // always do this to clear data in case there is no data for some layers
+        text_layer_set_text( s_buses[ i ].line, s_buses[ i ].line_string );
+        text_layer_set_text( s_buses[ i ].dest, s_buses[ i ].dest_string );
+        text_layer_set_text( s_buses[ i ].eta, s_buses[ i ].eta_string );
+    }
+}
+
 static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "Received new message!" );
@@ -142,6 +202,9 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
             break;
             case GPS_COORDS:
 //            gps_coords = t->value->cstring;
+            break;
+            case BUS_DATA:
+            parse_bus_data( t->value->cstring );
             break;
             default:
             APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Key %d not recognized!", ( int ) t->key );
