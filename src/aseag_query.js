@@ -96,13 +96,14 @@ function findClosestBusStopForCoords( coords ) {
         
         var bus_stop = bus_stops[ closest_index ];
         var bus_stop_name = bus_stop.name;
+        var bus_stop_id = bus_stop.id.slice( 1, bus_stop.id.length - 1 );
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
         bus_stop_name = killUmlauts( bus_stop_name );
         
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
-        xhrRequest( query_url_bus + '100000', 'GET', function( response_text ) {
+        xhrRequest( query_url_bus + bus_stop_id, 'GET', function( response_text ) {
             console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
             
             var bus_lines = parseLines( response_text );
