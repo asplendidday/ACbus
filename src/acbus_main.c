@@ -9,6 +9,7 @@
     
 static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
+static TextLayer* s_busses = NULL;
 
 static void main_window_load()
 {
@@ -17,15 +18,23 @@ static void main_window_load()
     text_layer_set_text_color( s_bus_station, GColorWhite );
     text_layer_set_font( s_bus_station, fonts_get_system_font( FONT_KEY_GOTHIC_14_BOLD ) );
     text_layer_set_text( s_bus_station, "Waiting for first update..." );
-    
-    
     text_layer_set_text_alignment( s_bus_station, GTextAlignmentLeft );
     
     layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_bus_station ) ); 
+    
+    s_busses = text_layer_create( GRect( 0, 20, 144, 140 ) );
+    text_layer_set_background_color( s_busses, GColorWhite );
+    text_layer_set_text_color( s_busses, GColorBlack );
+    text_layer_set_font( s_busses, fonts_get_system_font( FONT_KEY_GOTHIC_14 ) );
+    text_layer_set_text( s_busses, "" );
+    text_layer_set_text_alignment( s_bus_station, GTextAlignmentLeft );
+    
+    layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( s_busses ) ); 
 }
 
 static void main_window_unload()
 {
+    text_layer_destroy( s_busses );
     text_layer_destroy( s_bus_station );
 }
 
@@ -36,6 +45,9 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     Tuple* t = dict_read_first( iterator );
    
     char* bus_stop_name = NULL;
+    char* bus_one = NULL;
+    char* bus_two = NULL;
+    char* bus_three = NULL;
 //    char* bus_stop_dist = NULL;
 //    char* gps_coords = NULL;    
     
@@ -51,6 +63,15 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
 //            gps_coords = t->value->cstring;
             break;
             default:
+            case BUS_ONE:
+            bus_one = t->value->cstring;
+            break;
+            case BUS_TWO:
+            bus_two = t->value->cstring;
+            break;
+            case BUS_THREE:
+            bus_three = t->value->cstring;
+            break;
             APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Key %d not recognized!", ( int ) t->key );
             break;
         }
@@ -59,6 +80,13 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     }
  
     text_layer_set_text( s_bus_station, bus_stop_name );
+    
+    char* busses_output = bus_one;
+    busses_output = strcat( busses_output, "\n" );
+    busses_output = strcat( busses_output, bus_two );
+    busses_output = strcat( busses_output, "\n" );
+    busses_output = strcat( busses_output, bus_three );
+    text_layer_set_text( s_busses, busses_output );
 }
 
 static void inbox_dropped_callback( AppMessageResult reason, void* context )

@@ -67,6 +67,11 @@ function parseBusStops( response_text ) {
     return bus_stops;
 }
 
+function killUmlauts( string ) {
+    return string.replace( 'ß', 'ss' ).replace( 'ö', 'oe' ).replace( 'ä', 'ae' ).replace( 'ü', 'ue' );
+}
+
+
 function findClosestBusStopForCoords( coords ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
@@ -92,10 +97,8 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop = bus_stops[ closest_index ];
         var bus_stop_name = bus_stop.name;
         bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
-        bus_stop_name = bus_stop_name.replace( 'ß', 'ss' );
-        bus_stop_name = bus_stop_name.replace( 'ö', 'oe' );
-        bus_stop_name = bus_stop_name.replace( 'ä', 'ae' );
-        bus_stop_name = bus_stop_name.replace( 'ü', 'ue' );
+        bus_stop_name = killUmlauts( bus_stop_name );
+        
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
@@ -113,8 +116,8 @@ function findClosestBusStopForCoords( coords ) {
                 var bus_line = parseLine( bus_lines[ i ] );
                 
                 var bus = {
-                    number: bus_line[ 2 ],
-                    dest:   bus_line[ 3 ],
+                    number: bus_line[ 2 ].slice( 1, bus_line[ 2 ].length - 1 ),
+                    dest:   bus_line[ 3 ].slice( 1, bus_line[ 3 ].length - 1 ),
                     eta:    Math.round( ( bus_line[ 4 ] - global_now ) / ( 1000 * 60 ) )
                 };
                 
@@ -123,10 +126,28 @@ function findClosestBusStopForCoords( coords ) {
                 busses.push( bus );
             }
             
+            busses.sort( function( lhs, rhs ) {
+                return lhs.eta - rhs.eta;
+            } );
+                
+            var bus_one = busses[ 0 ].number + "  " + busses[ 0 ].dest + "\n" + busses[ 0 ].eta.toString() + " mins";
+            bus_one = killUmlauts( bus_one );
+            var bus_two = busses[ 1 ].number + "  " + busses[ 1 ].dest + "\n" + busses[ 1 ].eta.toString() + " mins";
+            bus_two = killUmlauts( bus_two );
+            var bus_three = busses[ 2 ].number + "  " + busses[ 2 ].dest + "\n" + busses[ 2 ].eta.toString() + " mins";
+            bus_three = killUmlauts( bus_three );
+            
+            console.log( bus_one );
+            console.log( bus_two );
+            console.log( bus_three );
+            
             var dict = {
                 'BUS_STOP_NAME': bus_stop_name,
                 'BUS_STOP_DIST': bus_stop_dist,
-                'GPS_COORDS': gps_coords
+                'GPS_COORDS': gps_coords,
+                'BUS_ONE': bus_one,
+                'BUS_TWO': bus_two,
+                'BUS_THREE': bus_three
             };
             
             Pebble.sendAppMessage( dict );
