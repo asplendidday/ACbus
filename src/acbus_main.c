@@ -22,6 +22,8 @@ static BitmapLayer* s_banner = NULL;
 #define DEST_BUFFER_SIZE 32
 #define ETA_BUFFER_SIZE 6
     
+static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
+    
 struct {
     TextLayer* line;
     TextLayer* dest;
@@ -141,8 +143,6 @@ static const char* read_bus_item( const char* bus_data, char* target, int max_by
 {
     const char* end_cursor = find_next_separator( bus_data, ';' );
     
-    if( *end_cursor == '\0' ) return end_cursor;
-    
     int num_bytes = end_cursor - bus_data;
     // save one byte for trailing \0
     num_bytes = num_bytes > max_bytes - 1 ? max_bytes - 1 : num_bytes;
@@ -152,7 +152,14 @@ static const char* read_bus_item( const char* bus_data, char* target, int max_by
     
     APP_LOG( APP_LOG_LEVEL_INFO, "%s", target );
     
-    return ++end_cursor;
+    if( *end_cursor == '\0' )
+    {
+        return end_cursor;
+    }
+    else
+    {
+        return ++end_cursor;
+    }
 }
 
 static void parse_bus_data( const char* bus_data )
@@ -188,20 +195,17 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
       
     Tuple* t = dict_read_first( iterator );
    
-    char* bus_stop_name = NULL;
-//    char* bus_stop_dist = NULL;
-//    char* gps_coords = NULL;    
-    
     while( t != NULL ) {
         switch( t->key ) {
             case BUS_STOP_NAME:
-            bus_stop_name = t->value->cstring;
+            {
+                snprintf( s_bus_stop_name, sizeof( s_bus_stop_name ), "%s", t->value->cstring );
+                text_layer_set_text( s_bus_station, s_bus_stop_name );
+            }            
             break;
             case BUS_STOP_DIST:
-//           bus_stop_dist = t->value->cstring;
             break;
             case GPS_COORDS:
-//            gps_coords = t->value->cstring;
             break;
             case BUS_DATA:
             parse_bus_data( t->value->cstring );
@@ -213,8 +217,6 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     
         t = dict_read_next( iterator );
     }
- 
-    text_layer_set_text( s_bus_station, bus_stop_name );
 }
 
 static void inbox_dropped_callback( AppMessageResult reason, void* context )

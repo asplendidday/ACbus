@@ -103,7 +103,7 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
-        //bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
+        bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
         xhrRequest( query_url_bus + bus_stop_id, 'GET', function( response_text ) {
             console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
             
@@ -154,7 +154,7 @@ function findClosestBusStopForCoords( coords ) {
             };
             
             Pebble.sendAppMessage( dict );
-            
+                        
             console.log( '[ACbus] Send bus stop data issued.' );
         } );
     } );
