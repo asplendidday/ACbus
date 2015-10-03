@@ -1,5 +1,9 @@
 #include <pebble.h>
-
+    
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+    
 #define BUS_STOP_NAME 0
 #define BUS_STOP_DIST 1
 #define GPS_COORDS    2
@@ -143,14 +147,13 @@ static const char* read_bus_item( const char* bus_data, char* target, int max_by
 {
     const char* end_cursor = find_next_separator( bus_data, ';' );
     
-    int num_bytes = end_cursor - bus_data;
-    // save one byte for trailing \0
-    num_bytes = num_bytes > max_bytes - 1 ? max_bytes - 1 : num_bytes;
+    // use "max_bytes - 1" as comparison to save a byte for the trailing '\0' char
+    const int num_bytes = min( end_cursor - bus_data, max_bytes - 1 );
     
+    // if num_bytes is 0 then target will be set to the empty string
+    // in this case, memcpy will essentially be a noop
     memcpy( target, bus_data, num_bytes );
     target[ num_bytes ] = '\0';
-    
-    APP_LOG( APP_LOG_LEVEL_INFO, "%s", target );
     
     if( *end_cursor == '\0' )
     {
@@ -164,13 +167,8 @@ static const char* read_bus_item( const char* bus_data, char* target, int max_by
 
 static void parse_bus_data( const char* bus_data )
 {   
-    APP_LOG( APP_LOG_LEVEL_INFO, "%s", bus_data );
-
     for( int i = 0; i < NUM_BUSES; ++i )
     {
-        // clear buffers
-        s_buses[ i ].line_string[ 0 ] = s_buses[ i ].dest_string[ 0 ] = s_buses[ i ].eta_string[ 0 ] = '\0';
-        
         if( *bus_data != '\0' ) // eof reached?
         {
             // read line
@@ -191,8 +189,8 @@ static void parse_bus_data( const char* bus_data )
 
 static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
-    APP_LOG( APP_LOG_LEVEL_INFO, "Received new message!" );
-      
+    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
+    
     Tuple* t = dict_read_first( iterator );
    
     while( t != NULL ) {
@@ -211,7 +209,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
             parse_bus_data( t->value->cstring );
             break;
             default:
-            APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Key %d not recognized!", ( int ) t->key );
+            APP_LOG( APP_LOG_LEVEL_WARNING, "[ACbus] Unknown message key %d!", ( int ) t->key );
             break;
         }
     
@@ -221,17 +219,17 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
 
 static void inbox_dropped_callback( AppMessageResult reason, void* context )
 {
-    APP_LOG( APP_LOG_LEVEL_ERROR, "Message dropped!" );
+    APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Message dropped!" );
 }
 
 static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
 {
-    APP_LOG( APP_LOG_LEVEL_ERROR, "Outbox send failed!" );
+    APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed!" );
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 {
-    APP_LOG( APP_LOG_LEVEL_INFO, "Outbox send successful." );
+    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Outbox send successful." );
 }
 
 

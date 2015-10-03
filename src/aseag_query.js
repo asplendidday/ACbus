@@ -103,7 +103,7 @@ function findClosestBusStopForCoords( coords ) {
         var bus_stop_dist = Math.round( closest_dist ).toString();
         var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
         
-        bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
+        //bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
         xhrRequest( query_url_bus + bus_stop_id, 'GET', function( response_text ) {
             console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
             
@@ -143,8 +143,6 @@ function findClosestBusStopForCoords( coords ) {
             }
             
             bus_data = killUmlauts( bus_data );
-         
-            console.log( bus_data );
             
             var dict = {
                 'BUS_STOP_NAME': bus_stop_name,
