@@ -18,8 +18,8 @@ static BitmapLayer* s_banner = NULL;
 #define BUS_ENTRY_MARGIN_TOP 28
 #define BUS_ENTRY_MARGIN_LEFT 3
 #define BUS_ENTRY_HEIGHT 16
-#define BUS_ENTRY_LINE_WIDTH 18
-#define BUS_ENTRY_DEST_WIDTH 102
+#define BUS_ENTRY_LINE_WIDTH 24
+#define BUS_ENTRY_DEST_WIDTH 96
 #define BUS_ENTRY_ETA_WIDTH 18
     
 #define LINE_BUFFER_SIZE 6
@@ -83,9 +83,9 @@ static void create_bus_text_layers()
         create_text_layer( &s_buses[ i ].dest, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
         create_text_layer( &s_buses[ i ].eta, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
         
-        text_layer_set_text( s_buses[ i ].line, "33" );
-        text_layer_set_text( s_buses[ i ].dest, "Bushof Vaals oder nicht?" );
-        text_layer_set_text( s_buses[ i ].eta, "15" );
+        text_layer_set_text( s_buses[ i ].line, "123" );
+        text_layer_set_text( s_buses[ i ].dest, "Awaiting update..." );
+        text_layer_set_text( s_buses[ i ].eta, "999" );
     }
 }
 
@@ -109,7 +109,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
 static void main_window_load()
 {
     create_text_layer( &s_bus_station, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
-    text_layer_set_text( s_bus_station, "Waiting for first update..." );
+    text_layer_set_text( s_bus_station, "Awaiting update..." );
  
     create_text_layer( &s_next_station, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
     text_layer_set_text( s_next_station, "next" );

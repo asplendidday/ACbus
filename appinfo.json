@@ -15,6 +15,7 @@
         "media": [
             {
                 "file": "images/h.png",
+                "menuIcon": true,
                 "name": "ICON_H",
                 "type": "png"
             }
