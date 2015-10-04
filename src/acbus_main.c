@@ -304,6 +304,10 @@ void button_single_click_handler( ClickRecognizerRef recognizer, void* context )
 void click_provider( Window* window )
 {
     window_single_click_subscribe( BUTTON_ID_SELECT, button_single_click_handler );
+    // also use down and up buttons to trigger updates as long as they are not repurposed to 
+    // do something else
+    window_single_click_subscribe( BUTTON_ID_DOWN, button_single_click_handler );
+    window_single_click_subscribe( BUTTON_ID_UP, button_single_click_handler );
 }
 
 

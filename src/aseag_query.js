@@ -108,9 +108,9 @@ function findClosestBusStopForCoords( coords ) {
             console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
             
             var bus_lines = parseLines( response_text );
-            var busses = [];
+            var buses = [];
             
-            console.log( '[ACbus] Found ' + ( bus_lines.length - 1 ) + " busses." );
+            console.log( '[ACbus] Found ' + ( bus_lines.length - 1 ) + " buses." );
             
             var global_now = parseLine( bus_lines[ 0 ] )[ 2 ];
             
@@ -123,20 +123,20 @@ function findClosestBusStopForCoords( coords ) {
                     eta:    bus_line[ 4 ] - global_now
                 };
                 
-                busses.push( bus );
+                buses.push( bus );
             }
             
-            busses.sort( function( lhs, rhs ) {
+            buses.sort( function( lhs, rhs ) {
                 return lhs.eta - rhs.eta;
             } );
 
-            var num_buses = Math.min( 7, busses.length );
+            var num_buses = Math.min( 7, buses.length );
             var bus_data = "";
             
             for( var j = 0; j < num_buses; ++j ) {
-                bus_data += busses[ j ].number + ';' +
-                            busses[ j ].dest + ';' +
-                            Math.round( busses[ j ].eta / ( 1000 * 60 ) );
+                bus_data += buses[ j ].number + ';' +
+                            buses[ j ].dest + ';' +
+                            Math.round( buses[ j ].eta / ( 1000 * 60 ) );
                 if( j + 1 < num_buses ) {
                     bus_data += ";";
                 }
