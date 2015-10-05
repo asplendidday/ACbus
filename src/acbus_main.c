@@ -22,7 +22,7 @@
 #define BUS_ENTRY_MARGIN_TOP    28
 #define BUS_ENTRY_MARGIN_LEFT    3
 #define BUS_ENTRY_HEIGHT        16
-#define BUS_ENTRY_LINE_WIDTH    28
+#define BUS_ENTRY_LINE_WIDTH    20
 #define BUS_ENTRY_DEST_WIDTH    92
 #define BUS_ENTRY_ETA_WIDTH     18
 
@@ -40,6 +40,7 @@ static Window* s_main_window = NULL;
 static TextLayer* s_bus_station = NULL;
 static TextLayer* s_next_station = NULL;
 static BitmapLayer* s_banner = NULL;
+static GColor s_line_colors[10];
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
     
@@ -60,7 +61,7 @@ struct {
 
 GRect line_rect( int index )
 {
-    return GRect( BUS_ENTRY_MARGIN_LEFT,
+    return GRect( 0,
                   BUS_ENTRY_MARGIN_TOP + index * BUS_ENTRY_HEIGHT,
                   BUS_ENTRY_LINE_WIDTH,
                   BUS_ENTRY_HEIGHT );
@@ -99,7 +100,7 @@ void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES; ++i )
     {
-        create_text_layer( &s_buses[ i ].line, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentLeft );
+        create_text_layer( &s_buses[ i ].line, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
         create_text_layer( &s_buses[ i ].dest, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
         create_text_layer( &s_buses[ i ].eta, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
         
@@ -127,6 +128,46 @@ void update_proc( Layer* layer, GContext* context )
     graphics_context_set_fill_color( context, GColorDarkCandyAppleRed );
     graphics_fill_rect( context, GRect( 0, 0, 144, 25 ), 0, GCornerNone );
     graphics_fill_rect( context, GRect( 0, 148, 144, 20 ), 0, GCornerNone );
+}
+
+void fill_line_colors()
+{
+    s_line_colors[0] = GColorIslamicGreen;
+    s_line_colors[1] = GColorMintGreen;
+    s_line_colors[2] = GColorMidnightGreen;
+    s_line_colors[3] = GColorVividCerulean;
+    s_line_colors[4] = GColorChromeYellow;
+    s_line_colors[5] = GColorSunsetOrange;
+    s_line_colors[6] = GColorIndigo;
+    s_line_colors[7] = GColorBrilliantRose;
+    s_line_colors[8] = GColorCadetBlue;
+    s_line_colors[9] = GColorYellow;
+}
+
+
+/**
+ * Use the line name to get color
+ */
+
+GColor get_line_color ( const char* line )
+{
+    int hash = 0;
+    char c = line[0]+13;
+    int i = 1;
+    do
+    {   
+        hash += ( int )c + 13;
+        c = line[i];
+        i++;
+        
+    } while( c != '\0' );
+  
+    while ( hash > 9 )
+    {
+        int tmp = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
+        hash = tmp;
+    }
+    return s_line_colors[hash];
 }
 
 
@@ -186,9 +227,14 @@ void parse_bus_data( const char* bus_data )
         // set texts layers
         // always do this to clear data in case there is no data for some layers
         text_layer_set_text( s_buses[ i ].line, s_buses[ i ].line_string );
+        text_layer_set_background_color(s_buses[ i ].line, get_line_color(s_buses[ i ].line_string));
         text_layer_set_text( s_buses[ i ].dest, s_buses[ i ].dest_string );
         text_layer_set_text( s_buses[ i ].eta, s_buses[ i ].eta_string );
+      
+        
     }
+  
+    
 }
 
 
@@ -368,6 +414,7 @@ void init()
     tick_timer_service_subscribe( MINUTE_UNIT, tick_handler );
     
     window_set_click_config_provider( s_main_window, ( ClickConfigProvider ) click_provider );
+    fill_line_colors();
 }
 
 void deinit()
