@@ -243,7 +243,7 @@ void parse_bus_data( const char* bus_data )
 // App message handling
 
 void inbox_received_callback( DictionaryIterator* iterator, void* context )
-{/*
+{
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
     Tuple* t = dict_read_first( iterator );
@@ -292,7 +292,7 @@ void inbox_received_callback( DictionaryIterator* iterator, void* context )
     static char timestamp_text[32];
     snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
     
-    text_layer_set_text( s_next_station, timestamp_text );*/
+    text_layer_set_text( s_next_station, timestamp_text );
 }
 
 void inbox_dropped_callback( AppMessageResult reason, void* context )
