@@ -24,11 +24,11 @@
 //==================================================================================================
 // Variables
 
-static Window* s_main_window = NULL;
-static TextLayer* s_bus_station = NULL;
-static TextLayer* s_next_station = NULL;
-static BitmapLayer* s_banner = NULL;
-static GColor s_line_colors[10];
+static Window* s_bus_display_wnd = NULL;
+static TextLayer* s_bus_display_title = NULL;
+static TextLayer* s_bus_display_status = NULL;
+static BitmapLayer* s_bus_display_banner = NULL;
+static GColor s_line_colors[ 10 ];
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
     
@@ -71,32 +71,13 @@ GRect eta_rect( int index )
                   BUS_ENTRY_HEIGHT );
 }
 
-void create_text_layer( TextLayer** text_layer, GRect rect, GColor back_color, GColor text_color, const char* font_name, GTextAlignment text_align )
-{
-    *text_layer = text_layer_create( rect );
-    
-    text_layer_set_background_color( *text_layer, back_color );
-    text_layer_set_text_color( *text_layer, text_color );
-    text_layer_set_font( *text_layer, fonts_get_system_font( font_name ) );
-    text_layer_set_text_alignment( *text_layer, text_align );
-    text_layer_set_text( *text_layer, "" );
-    
-    layer_add_child( window_get_root_layer( s_main_window ), text_layer_get_layer( *text_layer ) ); 
-}
-
 void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES; ++i )
     {
-        create_text_layer( &s_buses[ i ].line, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
-        create_text_layer( &s_buses[ i ].dest, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
-        create_text_layer( &s_buses[ i ].eta, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
-        
-        /*
-        text_layer_set_text( s_buses[ i ].line, "1234" );
-        text_layer_set_text( s_buses[ i ].dest, "Awaiting update..." );
-        text_layer_set_text( s_buses[ i ].eta, "999" );
-        */
+        common_create_text_layer( &s_buses[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
+        common_create_text_layer( &s_buses[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
+        common_create_text_layer( &s_buses[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
     }
 }
 
@@ -110,13 +91,6 @@ void destroy_bus_text_layers()
     }
 }
 
-
-void update_proc( Layer* layer, GContext* context )
-{
-    graphics_context_set_fill_color( context, GColorDarkCandyAppleRed );
-    graphics_fill_rect( context, GRect( 0, 0, 144, 25 ), 0, GCornerNone );
-    graphics_fill_rect( context, GRect( 0, 148, 144, 20 ), 0, GCornerNone );
-}
 
 void fill_line_colors()
 {
@@ -178,7 +152,7 @@ void update_time_stamp()
     static char timestamp_text[32];
     snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
     
-    text_layer_set_text( s_next_station, timestamp_text );
+    text_layer_set_text( s_bus_display_status, timestamp_text );
 }
 
 
@@ -241,8 +215,6 @@ void parse_bus_data( const char* bus_data )
         text_layer_set_background_color(s_buses[ i ].line, get_line_color(s_buses[ i ].line_string));
         text_layer_set_text( s_buses[ i ].dest, s_buses[ i ].dest_string );
         text_layer_set_text( s_buses[ i ].eta, s_buses[ i ].eta_string );
-      
-        
     }   
 }
 
@@ -276,20 +248,13 @@ void click_provider( Window* window )
 
 void bus_display_window_load()
 {
-    create_text_layer( &s_bus_station, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
-    text_layer_set_text( s_bus_station, "Initializing ..." );
+    common_create_text_layer( &s_bus_display_title, s_bus_display_wnd, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
+    text_layer_set_text( s_bus_display_title, "Initializing ..." );
  
-    create_text_layer( &s_next_station, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
-    text_layer_set_text( s_next_station, "No updates, yet." );
+    common_create_text_layer( &s_bus_display_status, s_bus_display_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
+    text_layer_set_text( s_bus_display_status, "No updates, yet." );
     
-    GBitmap* h_icon = gbitmap_create_with_resource( RESOURCE_ID_ICON_H );
-    s_banner = bitmap_layer_create( GRect( 3, 3, 18, 18 ) );
-    bitmap_layer_set_compositing_mode( s_banner, GCompOpSet );
-    bitmap_layer_set_background_color( s_banner, GColorClear );
-    bitmap_layer_set_bitmap( s_banner, h_icon );
-  
-    layer_add_child(window_get_root_layer( s_main_window ), bitmap_layer_get_layer(s_banner));
-    layer_set_update_proc( window_get_root_layer ( s_main_window ), update_proc );
+    common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     
     create_bus_text_layers(); 
 }
@@ -297,9 +262,9 @@ void bus_display_window_load()
 void bus_display_window_unload()
 {
     destroy_bus_text_layers();
-    bitmap_layer_destroy( s_banner );
-    text_layer_destroy( s_next_station );
-    text_layer_destroy( s_bus_station );    
+    bitmap_layer_destroy( s_bus_display_banner );
+    text_layer_destroy( s_bus_display_status );
+    text_layer_destroy( s_bus_display_title );    
 }
 
 
@@ -309,9 +274,9 @@ void bus_display_window_unload()
 
 void bus_display_create()
 {
-    s_main_window = window_create();
+    s_bus_display_wnd = window_create();
     
-	window_set_window_handlers( s_main_window, ( WindowHandlers )
+	window_set_window_handlers( s_bus_display_wnd, ( WindowHandlers )
         {
             .load = bus_display_window_load,
             .unload = bus_display_window_unload
@@ -319,18 +284,18 @@ void bus_display_create()
        
     fill_line_colors();
     
-    window_set_click_config_provider( s_main_window, ( ClickConfigProvider ) click_provider );  
+    window_set_click_config_provider( s_bus_display_wnd, ( ClickConfigProvider ) click_provider );  
 }
 
 void bus_display_destroy()
 {
-	window_destroy( s_main_window );
+	window_destroy( s_bus_display_wnd );
 }
 
 
 void bus_display_show()
 {
-    window_stack_push( s_main_window, true );   
+    window_stack_push( s_bus_display_wnd, true );   
 }
 
 
@@ -341,7 +306,7 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         case BUS_STOP_NAME:
         {
             snprintf( s_bus_stop_name, sizeof( s_bus_stop_name ), "%s", msg_tuple->value->cstring );
-            text_layer_set_text( s_bus_station, s_bus_stop_name );
+            text_layer_set_text( s_bus_display_title, s_bus_stop_name );
         }            
         break;
         case BUS_DATA:
@@ -359,5 +324,5 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 
 void bus_display_indicate_update_pending()
 {
-    text_layer_set_text( s_next_station, "Updating..." );
+    text_layer_set_text( s_bus_display_status, "Updating..." );
 }

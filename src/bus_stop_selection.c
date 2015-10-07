@@ -5,7 +5,8 @@
 // Variables
 
 static Window* s_bus_stop_sel_wnd = NULL;
-static TextLayer* s_title = NULL;
+static TextLayer* s_bus_stop_sel_title = NULL;
+static BitmapLayer* s_bus_stop_sel_banner = NULL;
 
 
 //==================================================================================================
@@ -14,10 +15,18 @@ static TextLayer* s_title = NULL;
 
 void bus_stop_selection_window_load()
 {
+    common_create_text_layer( &s_bus_stop_sel_title, s_bus_stop_sel_wnd, GRect( 24, 0, 120, 20 ),
+                              GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD,
+                              GTextAlignmentLeft );
+    text_layer_set_text( s_bus_stop_sel_title, "Select bus stop" );
+    
+    common_create_h_icon( &s_bus_stop_sel_banner, s_bus_stop_sel_wnd );
 }
 
 void bus_stop_selection_window_unload()
 {
+    bitmap_layer_destroy( s_bus_stop_sel_banner );
+    text_layer_destroy( s_bus_stop_sel_title );
 }
 
 
