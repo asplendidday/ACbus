@@ -1,7 +1,10 @@
 #pragma once
 
-void bus_stop_selection_window_create();
-void bus_stop_selection_window_destroy();
+#include "common.h"
 
-void bus_stop_selection_window_show();
-void bus_stop_selection_window_hide();
+void bus_stop_selection_create();
+void bus_stop_selection_destroy();
+
+void bus_stop_selection_show();
+
+void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple );
