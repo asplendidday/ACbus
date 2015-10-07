@@ -45,7 +45,7 @@ struct {
 
 //==================================================================================================
 //==================================================================================================
-// Local functions
+// Various helper functions
 
 GRect line_rect( int index )
 {
@@ -120,43 +120,71 @@ void update_proc( Layer* layer, GContext* context )
 
 void fill_line_colors()
 {
-    s_line_colors[0] = GColorIslamicGreen;
-    s_line_colors[1] = GColorMintGreen;
-    s_line_colors[2] = GColorMidnightGreen;
-    s_line_colors[3] = GColorVividCerulean;
-    s_line_colors[4] = GColorChromeYellow;
-    s_line_colors[5] = GColorSunsetOrange;
-    s_line_colors[6] = GColorIndigo;
-    s_line_colors[7] = GColorBrilliantRose;
-    s_line_colors[8] = GColorCadetBlue;
-    s_line_colors[9] = GColorYellow;
+    s_line_colors[ 0 ] = GColorIslamicGreen;
+    s_line_colors[ 1 ] = GColorMintGreen;
+    s_line_colors[ 2 ] = GColorMidnightGreen;
+    s_line_colors[ 3 ] = GColorVividCerulean;
+    s_line_colors[ 4 ] = GColorChromeYellow;
+    s_line_colors[ 5 ] = GColorSunsetOrange;
+    s_line_colors[ 6 ] = GColorIndigo;
+    s_line_colors[ 7 ] = GColorBrilliantRose;
+    s_line_colors[ 8 ] = GColorCadetBlue;
+    s_line_colors[ 9 ] = GColorYellow;
 }
 
 
 /**
  * Use the line name to get color
  */
-GColor get_line_color ( const char* line )
+GColor get_line_color( const char* line )
 {
     int hash = 0;
-    char c = line[0]+13;
+    char c = line[ 0 ]+13;
     int i = 1;
     do
     {   
-        hash += ( int )c + 13;
-        c = line[i];
+        hash += ( int ) c + 13;
+        c = line[ i ];
         i++;
         
     } while( c != '\0' );
   
-    while ( hash > 9 )
+    while( hash > 9 )
     {
         int tmp = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
         hash = tmp;
     }
-    return s_line_colors[hash];
+    return s_line_colors[ hash ];
 }
 
+void update_time_stamp()
+{
+	// Update last update timestamp
+    time_t temp = time( NULL );
+    struct tm* tick_time = localtime( &temp );
+
+    // static ensures longevity of buffer
+    static char time_buffer[] = "00:00:00";
+
+    if( clock_is_24h_style() == true )
+    {
+        strftime( time_buffer, sizeof( "00:00:00" ), "%H:%M:%S", tick_time );
+    }
+    else
+    {
+        strftime( time_buffer, sizeof( "00:00:00" ), "%I:%M:%S", tick_time );
+    }
+    
+    static char timestamp_text[32];
+    snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
+    
+    text_layer_set_text( s_next_station, timestamp_text );
+}
+
+
+//==================================================================================================
+//==================================================================================================
+// Message parsing
 
 const char* find_next_separator( const char* cursor, const char separator )
 {
@@ -219,30 +247,32 @@ void parse_bus_data( const char* bus_data )
 }
 
 
-void update_time_stamp()
+//==================================================================================================
+//==================================================================================================
+// Button click handling
+
+void update_click_handler( ClickRecognizerRef recognizer, void* context )
 {
-	// Update last update timestamp
-    time_t temp = time( NULL );
-    struct tm* tick_time = localtime( &temp );
-
-    // static ensures longevity of buffer
-    static char time_buffer[] = "00:00:00";
-
-    if( clock_is_24h_style() == true )
-    {
-        strftime( time_buffer, sizeof( "00:00:00" ), "%H:%M:%S", tick_time );
-    }
-    else
-    {
-        strftime( time_buffer, sizeof( "00:00:00" ), "%I:%M:%S", tick_time );
-    }
-    
-    static char timestamp_text[32];
-    snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
-    
-    text_layer_set_text( s_next_station, timestamp_text );
+    common_get_update_callback()();
 }
 
+void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
+{
+    bus_stop_selection_show();
+}
+
+void click_provider( Window* window )
+{
+    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
+    
+    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
+    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
+}
+
+
+//==================================================================================================
+//==================================================================================================
+// Window (un)loading
 
 void bus_display_window_load()
 {
@@ -270,29 +300,6 @@ void bus_display_window_unload()
     bitmap_layer_destroy( s_banner );
     text_layer_destroy( s_next_station );
     text_layer_destroy( s_bus_station );    
-}
-
-
-//==================================================================================================
-//==================================================================================================
-// Button click handling
-
-void update_click_handler( ClickRecognizerRef recognizer, void* context )
-{
-    common_get_update_callback()();
-}
-
-void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
-{
-    bus_stop_selection_show();
-}
-
-void click_provider( Window* window )
-{
-    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
-    
-    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
-    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
 }
 
 

@@ -38,10 +38,7 @@ void bus_stop_selection_create()
 
 void bus_stop_selection_destroy()
 {
-    if( s_bus_stop_sel_wnd )
-    {
-        window_destroy( s_bus_stop_sel_wnd );
-    }
+    window_destroy( s_bus_stop_sel_wnd );
 }
 
 
