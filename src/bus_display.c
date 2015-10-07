@@ -1,4 +1,5 @@
 #include "bus_display.h"
+#include "bus_stop_selection.h"
 
 //==================================================================================================
 //==================================================================================================
@@ -243,7 +244,7 @@ void update_time_stamp()
 }
 
 
-void window_load()
+void bus_display_window_load()
 {
     create_text_layer( &s_bus_station, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
     text_layer_set_text( s_bus_station, "Initializing ..." );
@@ -263,7 +264,7 @@ void window_load()
     create_bus_text_layers(); 
 }
 
-void window_unload()
+void bus_display_window_unload()
 {
     destroy_bus_text_layers();
     bitmap_layer_destroy( s_banner );
@@ -271,6 +272,28 @@ void window_unload()
     text_layer_destroy( s_bus_station );    
 }
 
+
+//==================================================================================================
+//==================================================================================================
+// Button click handling
+
+void update_click_handler( ClickRecognizerRef recognizer, void* context )
+{
+    common_get_update_callback()();
+}
+
+void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
+{
+    bus_stop_selection_show();
+}
+
+void click_provider( Window* window )
+{
+    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
+    
+    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
+    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
+}
 
 
 //==================================================================================================
@@ -283,11 +306,13 @@ void bus_display_create()
     
 	window_set_window_handlers( s_main_window, ( WindowHandlers )
         {
-            .load = window_load,
-            .unload = window_unload
+            .load = bus_display_window_load,
+            .unload = bus_display_window_unload
         } );   
-        
-    fill_line_colors();    
+       
+    fill_line_colors();
+    
+    window_set_click_config_provider( s_main_window, ( ClickConfigProvider ) click_provider );  
 }
 
 void bus_display_destroy()
@@ -322,4 +347,10 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         // intentionally left blank
         break;
     }
+}
+
+
+void bus_display_indicate_update_pending()
+{
+    text_layer_set_text( s_next_station, "Updating..." );
 }

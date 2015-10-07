@@ -10,3 +10,6 @@ void bus_display_destroy();
 void bus_display_show();
 
 void bus_display_handle_msg_tuple( Tuple* msg_tuple );
+
+
+void bus_display_indicate_update_pending();

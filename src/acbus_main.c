@@ -51,7 +51,7 @@ void send_update_request()
     
     app_message_outbox_send();
     
-    //text_layer_set_text( s_next_station, "Updating..." );
+    bus_display_indicate_update_pending();
 }
 
 
@@ -61,30 +61,7 @@ void send_update_request()
 
 void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
-    send_update_request();
-}
-
-
-//==================================================================================================
-//==================================================================================================
-// Button click handling
-
-void update_click_handler( ClickRecognizerRef recognizer, void* context )
-{
-    send_update_request();
-}
-
-void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
-{
-    bus_stop_selection_show();
-}
-
-void click_provider( Window* window )
-{
-    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
-    
-    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
-    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
+    common_get_update_callback()();
 }
 
 
@@ -95,27 +72,30 @@ void click_provider( Window* window )
 
 void init()
 {
+    // set up global common state
+    common_set_update_callback( send_update_request );
+    
+    // init windows
+    bus_stop_selection_create();
+    
     bus_display_create();
     bus_display_show();
     
-    bus_stop_selection_create();
-    
-    // register app message handlers and init it
+    // set up app messages
     app_message_register_inbox_received( inbox_received_callback );
     app_message_register_inbox_dropped( inbox_dropped_callback );
     app_message_register_outbox_failed( outbox_failed_callback );
     app_message_register_outbox_sent( outbox_sent_callback );
     app_message_open( app_message_inbox_size_maximum(), app_message_outbox_size_maximum() );
     
+    // set up periodic updates
     tick_timer_service_subscribe( MINUTE_UNIT, tick_handler );
-    
-    //window_set_click_config_provider( s_main_window, ( ClickConfigProvider ) click_provider );}
 }
 
 void deinit()
 {
-    bus_stop_selection_destroy();
     bus_display_destroy();
+    bus_stop_selection_destroy();
 }
 
 
