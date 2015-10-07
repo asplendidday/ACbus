@@ -47,7 +47,8 @@ void send_update_request()
     DictionaryIterator* iter = NULL;
     app_message_outbox_begin( &iter );
     
-    dict_write_uint8( iter, 0, 0 );
+    dict_write_uint32( iter, REQ_BUS_STOP_ID, common_get_current_bus_stop_id() );
+    dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
     
     app_message_outbox_send();
     

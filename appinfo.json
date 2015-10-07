@@ -3,7 +3,9 @@
         "BUS_DATA": 3,
         "BUS_STOP_DIST": 1,
         "BUS_STOP_NAME": 0,
-        "GPS_COORDS": 2
+        "GPS_COORDS": 2,
+        "REQ_BUS_STOP_ID": 4,
+        "REQ_UPDATE_BUS_STOP_LIST": 5
     },
     "capabilities": [
         "location"

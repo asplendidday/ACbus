@@ -5,6 +5,8 @@
 // Variables
 
 static GenericCallback s_update_callback = NULL;
+static int s_current_bus_stop_id = -1;
+
 
 //==================================================================================================
 //==================================================================================================
@@ -62,4 +64,15 @@ void common_create_h_icon( BitmapLayer** bitmap_layer, Window* window )
   
     layer_add_child( window_get_root_layer( window ), bitmap_layer_get_layer( *bitmap_layer ) );
     layer_set_update_proc( window_get_root_layer ( window ), update_proc );    
+}
+
+
+void common_set_current_bus_stop_id( int id )
+{
+    s_current_bus_stop_id = id;
+}
+
+int common_get_current_bus_stop_id()
+{
+    return s_current_bus_stop_id;
 }

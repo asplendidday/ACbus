@@ -7,6 +7,8 @@
 #define BUS_STOP_DIST            1
 #define GPS_COORDS               2
 #define BUS_DATA                 3
+#define REQ_BUS_STOP_ID			 4
+#define REQ_UPDATE_BUS_STOP_LIST 5
 
 // Typedefs
 typedef void( *GenericCallback )( void );
@@ -23,3 +25,7 @@ void common_create_text_layer( TextLayer** text_layer, Window* window, GRect rec
 							   GColor text_color, const char* font_name, GTextAlignment text_align );
 
 void common_create_h_icon( BitmapLayer** bitmap_layer, Window* window );
+
+
+void common_set_current_bus_stop_id( int id );
+int common_get_current_bus_stop_id();
