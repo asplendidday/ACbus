@@ -14,6 +14,14 @@
     "resources": {
         "media": [
             {
+                "file": "images/acbus_middle.png",
+                "name": "LOGO_MIDDLE",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "png"
+            },
+            {
                 "file": "images/acbus_small.png",
                 "menuIcon": true,
                 "name": "LOGO_SMALL",
@@ -25,14 +33,6 @@
             {
                 "file": "images/h.png",
                 "name": "ICON_H",
-                "type": "png"
-            },
-            {
-                "file": "images/acbus_middle.png",
-                "name": "LOGO_MIDDLE",
-                "targetPlatforms": [
-                    "basalt"
-                ],
                 "type": "png"
             },
             {

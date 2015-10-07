@@ -1,5 +1,5 @@
 #include <pebble.h>
-    
+#include "bus_stop_selection.h"
     
 //==================================================================================================
 //==================================================================================================
@@ -243,7 +243,7 @@ void parse_bus_data( const char* bus_data )
 // App message handling
 
 void inbox_received_callback( DictionaryIterator* iterator, void* context )
-{
+{/*
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
     Tuple* t = dict_read_first( iterator );
@@ -257,10 +257,10 @@ void inbox_received_callback( DictionaryIterator* iterator, void* context )
             }            
             break;
             case BUS_STOP_DIST:
-            /* not used at the moment */
+            // not used at the moment
             break;
             case GPS_COORDS:
-            /* not used at the moment */
+            // not used at the moment
             break;
             case BUS_DATA:
             parse_bus_data( t->value->cstring );
@@ -292,7 +292,7 @@ void inbox_received_callback( DictionaryIterator* iterator, void* context )
     static char timestamp_text[32];
     snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
     
-    text_layer_set_text( s_next_station, timestamp_text );
+    text_layer_set_text( s_next_station, timestamp_text );*/
 }
 
 void inbox_dropped_callback( AppMessageResult reason, void* context )
@@ -342,18 +342,22 @@ void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 //==================================================================================================
 // Button click handling
 
-void button_single_click_handler( ClickRecognizerRef recognizer, void* context )
+void update_click_handler( ClickRecognizerRef recognizer, void* context )
 {
     send_update_request();
 }
 
+void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
+{
+    bus_stop_selection_window_show();
+}
+
 void click_provider( Window* window )
 {
-    window_single_click_subscribe( BUTTON_ID_SELECT, button_single_click_handler );
-    // also use down and up buttons to trigger updates as long as they are not repurposed to 
-    // do something else
-    window_single_click_subscribe( BUTTON_ID_DOWN, button_single_click_handler );
-    window_single_click_subscribe( BUTTON_ID_UP, button_single_click_handler );
+    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
+    
+    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
+    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
 }
 
 
@@ -415,10 +419,13 @@ void init()
     
     window_set_click_config_provider( s_main_window, ( ClickConfigProvider ) click_provider );
     fill_line_colors();
+    
+    bus_stop_selection_window_create();
 }
 
 void deinit()
 {
+    bus_stop_selection_window_destroy();
 	window_destroy( s_main_window );
 }
 
