@@ -63,7 +63,11 @@ function parseBusStops( response_text ) {
             dist: Infinity // will be updated later
         };
 
-        bus_stops.push( bus_stop );
+        // There are lots of bus stops at coord (0, 0). Maybe that is deprecated data.
+        // We will filter it out here.
+        if( bus_stop.lon > 0.1 && bus_stop.lat > 0.1 ) {
+            bus_stops.push( bus_stop );
+        }
     }
 
     console.log( '[ACbus] Parsed ' + bus_stops.length + ' bus stops.' );
@@ -79,8 +83,6 @@ function findClosestBusStopForCoords( coords ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
 
-        console.log( "Got into main func.");
-
         for( var i = 0; i < bus_stops.length; ++i ) {
             bus_stops[ i ].dist = distance( bus_stops[ i ].lon,
                                             bus_stops[ i ].lat,
@@ -91,26 +93,24 @@ function findClosestBusStopForCoords( coords ) {
         bus_stops.sort( function( lhs, rhs ) {
             return lhs.dist - rhs.dist;
         } );
-
-        console.log( '[ACbus] Closest bus stop ' + bus_stops[ 0 ].name +
-                     ' found at ' + bus_stops[ 0 ].dist + ' meters distance.' );
-
-        var bus_stop = bus_stops[ 0 ];
-        var bus_stop_name = bus_stop.name;
-        var bus_stop_id = bus_stop.id.slice( 1, bus_stop.id.length - 1 );
-        bus_stop_name = bus_stop_name.slice( 1, bus_stop_name.length - 1 );
-        bus_stop_name = killUmlauts( bus_stop_name );
-
-        var bus_stop_dist = "1.0";//Math.round( bus_stop.dist ).toString();
-        var gps_coords = Math.round( coords.longitude, 1 ).toString() + ", " + Math.round( coords.latitude, 1 ).toString();
-
+/*
+        // Debug settings        
+        bus_stops[ 0 ].id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
+        bus_stops[ 0 ].name = 'Aachen Bushof';
+*/
+        var num_bus_stops = Math.min( 10, bus_stops.length );
+        var bus_stop_data = "";
         
-        bus_stop_id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
-        bus_stop_name = 'Aachen Bushof';
-        
-        
-        xhrRequest( query_url_bus + bus_stop_id, 'GET', function( response_text ) {
-            console.log( '[ACbus] Getting next buses for ' + bus_stop_name );
+        for( var j = 0; j < num_bus_stops; ++j ) {
+            bus_stop_data += killUmlauts( bus_stops[ j ].name ) + ';' +
+                             ( Math.round( bus_stops[ j ].dist / 100 ) / 10 );
+            if( j + 1 < num_bus_stops ) {
+                bus_stop_data += ";";
+            }
+        }
+   
+        xhrRequest( query_url_bus + bus_stops[ 0 ].id, 'GET', function( response_text ) {
+            console.log( '[ACbus] Getting next buses for ' + bus_stops[ 0 ].name + '.' );
 
             var bus_lines = parseLines( response_text );
             var buses = [];
@@ -150,11 +150,12 @@ function findClosestBusStopForCoords( coords ) {
             }
 
             var dict = {
-                'BUS_STOP_DATA': bus_stop_name,
+                'BUS_STOP_DATA': bus_stop_data,
                 'BUS_DATA': bus_data
             };
             
-            console.log( bus_data );
+            console.log( '[ACbus] Bus data:\n' + bus_stop_data );
+            console.log( '[ACbus] Bus stop data:\n' + bus_data );            
             
             console.log( '[ACbus] Sending update.' );
 
