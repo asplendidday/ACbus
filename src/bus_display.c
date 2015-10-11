@@ -79,7 +79,7 @@ void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
+        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter );
         common_create_text_layer( &s_bus_display_lines[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
         common_create_text_layer( &s_bus_display_lines[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
     }
