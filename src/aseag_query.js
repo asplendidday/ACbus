@@ -1,9 +1,37 @@
+//==================================================================================================
+//==================================================================================================
+// Variables
+
 var query_url_base = 'http://ivu.aseag.de/interfaces/ura/instant_V1?ReturnList=';
 var query_url_bus = query_url_base + 'StopPointName,LineName,DestinationName,EstimatedTime&StopID=';
 var query_url_stops = query_url_base + 'StopPointName,StopID,Longitude,Latitude';
 
+
+//==================================================================================================
+//==================================================================================================
+// Helper functions
+
+function degToRad( angleInDeg ) {
+    return angleInDeg / 180.0 * Math.PI;
+}
+
+function killUmlauts( string ) {
+    return string.replace( 'ß', 'ss' ).replace( 'ö', 'oe' ).replace( 'ä', 'ae' ).replace( 'ü', 'ue' );
+}
+
+function removeQuotes( string ) {
+    return string.slice( 1, string.length - 1);
+}
+
+function cleanUpBusStopName( bus_stop_name ) {
+    bus_stop_name = removeQuotes( bus_stop_name );
+    bus_stop_name = killUmlauts( bus_stop_name );
+    return bus_stop_name;
+}
+
+
 var xhrRequest = function( url, type, callback ) {
-    console.log( '[ACbus] Sending request to URL <' + url + '>.' );
+    console.log( '[ACbus] Sending http request to URL <' + url + '>.' );
     
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
@@ -13,11 +41,7 @@ var xhrRequest = function( url, type, callback ) {
     xhr.send( null );
 };
 
-function degToRad( angleInDeg ) {
-    return angleInDeg / 180.0 * Math.PI;
-}
-
-function distance( lon1, lat1, lon2, lat2 ) {
+function distanceBetweenGPSCoords( lon1, lat1, lon2, lat2 ) {
     var R = 6371000; // earth mean radius
     var phi1 = degToRad( lat1 );
     var phi2 = degToRad( lat2 );
@@ -43,6 +67,11 @@ function parseLine( line ) {
     return parsed.split( ',' );
 }
 
+
+//==================================================================================================
+//==================================================================================================
+// Bus stop parsing
+
 function parseBusStops( response_text ) {
     console.log( '[ACbus] Parsing bus stops.' );
 
@@ -56,7 +85,7 @@ function parseBusStops( response_text ) {
 
         // compare this to the query url for bus stops and its return list params
         var bus_stop = {
-            name: parsed_line[ 1 ],
+            name: cleanUpBusStopName( parsed_line[ 1 ] ),
             id:   parsed_line[ 2 ],
             lon:  parsed_line[ 4 ],
             lat:  parsed_line[ 3 ],
@@ -74,35 +103,35 @@ function parseBusStops( response_text ) {
     return bus_stops;
 }
 
-function killUmlauts( string ) {
-    return string.replace( 'ß', 'ss' ).replace( 'ö', 'oe' ).replace( 'ä', 'ae' ).replace( 'ü', 'ue' );
-}
 
+//==================================================================================================
+//==================================================================================================
+// Data update functions
 
-function findClosestBusStopForCoords( coords ) {
+function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
 
         for( var i = 0; i < bus_stops.length; ++i ) {
-            bus_stops[ i ].dist = distance( bus_stops[ i ].lon,
-                                            bus_stops[ i ].lat,
-                                            coords.longitude,
-                                            coords.latitude );
+            bus_stops[ i ].dist = distanceBetweenGPSCoords( bus_stops[ i ].lon,
+                                                            bus_stops[ i ].lat,
+                                                            coords.longitude,
+                                                            coords.latitude );
         }
 
         bus_stops.sort( function( lhs, rhs ) {
             return lhs.dist - rhs.dist;
         } );
-/*
+
         // Debug settings        
         bus_stops[ 0 ].id = '100000'; // for debugging in emulator set to 'Aachen Bushof'
         bus_stops[ 0 ].name = 'Aachen Bushof';
-*/
+
         var num_bus_stops = Math.min( 10, bus_stops.length );
         var bus_stop_data = "";
         
         for( var j = 0; j < num_bus_stops; ++j ) {
-            bus_stop_data += killUmlauts( bus_stops[ j ].name ) + ';' +
+            bus_stop_data += bus_stops[ j ].name + ';' +
                              ( Math.round( bus_stops[ j ].dist / 100 ) / 10 );
             if( j + 1 < num_bus_stops ) {
                 bus_stop_data += ";";
@@ -123,8 +152,8 @@ function findClosestBusStopForCoords( coords ) {
                 var bus_line = parseLine( bus_lines[ i ] );
 
                 var bus = {
-                    number: bus_line[ 2 ].slice( 1, bus_line[ 2 ].length - 1 ),
-                    dest:   bus_line[ 3 ].slice( 1, bus_line[ 3 ].length - 1 ),
+                    number: removeQuotes( bus_line[ 2 ] ),
+                    dest:   cleanUpBusStopName( bus_line[ 3 ] ),
                     eta:    bus_line[ 4 ] - global_now
                 };
 
@@ -142,7 +171,7 @@ function findClosestBusStopForCoords( coords ) {
 
             for( var j = 0; j < num_buses; ++j ) {
                 bus_data += buses[ j ].number + ';' +
-                            killUmlauts( buses[ j ].dest ) + ';' +
+                            buses[ j ].dest + ';' +
                             Math.round( buses[ j ].eta / ( 1000 * 60 ) );
                 if( j + 1 < num_buses ) {
                     bus_data += ";";
@@ -166,36 +195,51 @@ function findClosestBusStopForCoords( coords ) {
     } );
 }
 
-function locationSuccess( pos ) {
-    console.log( '[ACbus] Got new location data. Determining closest bus stop.' );
-    findClosestBusStopForCoords( pos.coords );
-}
 
-function locationFailure( err ) {
-    console.log( '[ACbus] An error occured while getting new location data. Error: ' + err );
-}
+//==================================================================================================
+//==================================================================================================
+// GPS coord query
 
-function determineClosestBusStop() {
+function determineClosestBusStop( requested_bus_stop_id ) {
     console.log( '[ACbus] Determining closest bus stop.' );
     console.log( '[ACbus] Querying current GPS coordinates.' );
     
     navigator.geolocation.getCurrentPosition(
-        locationSuccess,
-        locationFailure,
+        // success
+        function( pos ) {
+            console.log( '[ACbus] Got new location data. Determining closest bus stop.' );
+            findClosestBusStopForCoords( pos.coords, requested_bus_stop_id );
+        },
+        // failure
+        function( err ) {
+            console.log( '[ACbus] An error occured while getting new location data. Error: ' + err );
+        },
+        // geoloc request params    
         { timeout: 15000, maximumAge: 60000 }
     );
 }
 
+//==================================================================================================
+//==================================================================================================
+// Pebble JS setup
+
 Pebble.addEventListener( 'ready',
     function( e ) {
         console.log( '[ACbus] Pebble JS ready!' );
-
-        determineClosestBusStop();
     } );
 
 Pebble.addEventListener( 'appmessage',
     function( e ) {
         console.log( '[ACbus] AppMessage received!' ) ;
 
-        determineClosestBusStop();
+        var request = JSON.parse( JSON.stringify( e.payload ) );
+        console.log( JSON.stringify( e.payload ) );
+        
+        var requested_bus_stop_id = request[ 'REQ_BUS_STOP_ID' ];
+        var update_bus_stop_list = request[ 'REQ_UPDATE_BUS_STOP_LIST' ];
+        
+        console.log( '[ACbus] Request received with REQ_BUS_STOP_ID <' + requested_bus_stop_id +
+                     '> and REQ_UPDATE_BUS_STOP_LIST <' + update_bus_stop_list + '>.' );
+        
+        determineClosestBusStop( requested_bus_stop_id );
     } );
