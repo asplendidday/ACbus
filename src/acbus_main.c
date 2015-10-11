@@ -65,6 +65,11 @@ void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
     common_get_update_callback()();
 }
 
+void tap_handler( AccelAxisType axis, int32_t direction )
+{
+    common_get_update_callback()();
+}
+
 
 //==================================================================================================
 //==================================================================================================
@@ -91,6 +96,9 @@ void init()
     
     // set up periodic updates
     tick_timer_service_subscribe( MINUTE_UNIT, tick_handler );
+    
+    // set up tap recognition
+    accel_tap_service_subscribe( tap_handler );
 }
 
 void deinit()
