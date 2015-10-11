@@ -1,11 +1,9 @@
 {
     "appKeys": {
-        "BUS_DATA": 3,
-        "BUS_STOP_DIST": 1,
-        "BUS_STOP_NAME": 0,
-        "GPS_COORDS": 2,
-        "REQ_BUS_STOP_ID": 4,
-        "REQ_UPDATE_BUS_STOP_LIST": 5
+        "BUS_STOP_DATA": 0,
+        "BUS_DATA": 1,        
+        "REQ_BUS_STOP_ID": 2,
+        "REQ_UPDATE_BUS_STOP_LIST": 3
     },
     "capabilities": [
         "location"

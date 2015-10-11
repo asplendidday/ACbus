@@ -3,12 +3,10 @@
 #include <pebble.h>
 
 // App message ids
-#define BUS_STOP_NAME            0
-#define BUS_STOP_DIST            1
-#define GPS_COORDS               2
-#define BUS_DATA                 3
-#define REQ_BUS_STOP_ID			 4
-#define REQ_UPDATE_BUS_STOP_LIST 5
+#define BUS_STOP_DATA            0
+#define BUS_DATA                 1
+#define REQ_BUS_STOP_ID          2
+#define REQ_UPDATE_BUS_STOP_LIST 3
 
 // Typedefs
 typedef void( *GenericCallback )( void );

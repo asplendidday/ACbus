@@ -8,7 +8,6 @@
 // Layout information
 #define NUM_BUSES               21
 #define NUM_BUSES_PER_PAGE       7
-
     
 #define BUS_ENTRY_MARGIN_TOP    28
 #define BUS_ENTRY_MARGIN_LEFT    3
@@ -229,6 +228,15 @@ const char* read_bus_item( const char* bus_data, char* target, int max_bytes )
     }
 }
 
+void parse_first_bus_stop( const char* bus_stop_data )
+{
+    if( bus_stop_data != NULL && bus_stop_data != '\0' )
+    {
+        read_bus_item( bus_stop_data, s_bus_stop_name, DEST_BUFFER_SIZE );  
+        text_layer_set_text( s_bus_display_title, s_bus_stop_name );
+    }
+}
+
 /**
  * This function takes the string as provided by a BUS_DATA app message, parses it,
  * and uses the parsed data to update all bus text layers.
@@ -350,10 +358,9 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 {
     switch( msg_tuple->key )
     {
-        case BUS_STOP_NAME:
+        case BUS_STOP_DATA:
         {
-            snprintf( s_bus_stop_name, sizeof( s_bus_stop_name ), "%s", msg_tuple->value->cstring );
-            text_layer_set_text( s_bus_display_title, s_bus_stop_name );
+            parse_first_bus_stop( msg_tuple->value->cstring );
         }            
         break;
         case BUS_DATA:

@@ -150,9 +150,7 @@ function findClosestBusStopForCoords( coords ) {
             }
 
             var dict = {
-                'BUS_STOP_NAME': bus_stop_name,
-                'BUS_STOP_DIST': bus_stop_dist,
-                'GPS_COORDS': gps_coords,
+                'BUS_STOP_DATA': bus_stop_name,
                 'BUS_DATA': bus_data
             };
             
