@@ -12,7 +12,7 @@
 #define BUS_ENTRY_MARGIN_TOP    28
 #define BUS_ENTRY_MARGIN_LEFT    3
 #define BUS_ENTRY_HEIGHT        16
-#define BUS_ENTRY_LINE_WIDTH    20
+#define BUS_ENTRY_LINE_WIDTH    28
 #define BUS_ENTRY_DEST_WIDTH    92
 #define BUS_ENTRY_ETA_WIDTH     18
 
