@@ -6,7 +6,9 @@
 // Definitions
 
 // Layout information
-#define NUM_BUSES                7
+#define NUM_BUSES               21
+#define NUM_BUSES_PER_PAGE       7
+
     
 #define BUS_ENTRY_MARGIN_TOP    28
 #define BUS_ENTRY_MARGIN_LEFT    3
@@ -29,6 +31,7 @@ static TextLayer* s_bus_display_title = NULL;
 static TextLayer* s_bus_display_status = NULL;
 static BitmapLayer* s_bus_display_banner = NULL;
 static GColor s_line_colors[ 10 ];
+static int s_current_page = 0;
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
     
@@ -36,7 +39,9 @@ struct {
     TextLayer* line;
     TextLayer* dest;
     TextLayer* eta;
+} s_bus_display_lines[ NUM_BUSES_PER_PAGE ];
     
+struct {    
     char line_string[ LINE_BUFFER_SIZE ];
     char dest_string[ DEST_BUFFER_SIZE ];
     char eta_string[ ETA_BUFFER_SIZE ];
@@ -73,22 +78,30 @@ GRect eta_rect( int index )
 
 void create_bus_text_layers()
 {    
-    for( int i = 0; i < NUM_BUSES; ++i )
+    for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        common_create_text_layer( &s_buses[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
-        common_create_text_layer( &s_buses[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
-        common_create_text_layer( &s_buses[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
+        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter);
+        common_create_text_layer( &s_bus_display_lines[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
+        common_create_text_layer( &s_bus_display_lines[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
     }
 }
 
 void destroy_bus_text_layers()
 {
-    for( int i = 0; i < NUM_BUSES; ++i )
+    for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        text_layer_destroy( s_buses[ i ].line );
-        text_layer_destroy( s_buses[ i ].dest );
-        text_layer_destroy( s_buses[ i ].eta );
+        text_layer_destroy( s_bus_display_lines[ i ].line );
+        text_layer_destroy( s_bus_display_lines[ i ].dest );
+        text_layer_destroy( s_bus_display_lines[ i ].eta );
     }
+}
+
+void set_bus_text_layer( int index, const char* line, GColor line_color, const char* dest, const char* eta )
+{
+    text_layer_set_text( s_bus_display_lines[ index ].line, line );
+    text_layer_set_background_color( s_bus_display_lines[ index ].line, line_color );
+    text_layer_set_text( s_bus_display_lines[ index ].dest, dest );
+    text_layer_set_text( s_bus_display_lines[ index ].eta, eta );  
 }
 
 
@@ -130,6 +143,31 @@ GColor get_line_color( const char* line )
     }
     return s_line_colors[ hash ];
 }
+
+
+void update_bus_text_layers()
+{
+    int buses_on_page = min( NUM_BUSES - s_current_page * NUM_BUSES_PER_PAGE, NUM_BUSES_PER_PAGE );
+    
+    for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
+    {
+        int base_index = NUM_BUSES_PER_PAGE * s_current_page;
+        int bus_index = base_index + i;
+        
+        if( i < buses_on_page )
+        {
+            set_bus_text_layer( i, s_buses[ bus_index ].line_string,
+                                   get_line_color( s_buses[ bus_index ].line_string ),
+                                   s_buses[ bus_index ].dest_string,
+                                   s_buses[ bus_index ].eta_string );
+        }
+        else
+        {
+            set_bus_text_layer( i, "", GColorWhite, "", "" );
+        }
+    }
+}
+
 
 void update_time_stamp()
 {
@@ -208,14 +246,9 @@ void parse_bus_data( const char* bus_data )
             // read eta
             bus_data = read_bus_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
         }
-        
-        // set texts layers
-        // always do this to clear data in case there is no data for some layers
-        text_layer_set_text( s_buses[ i ].line, s_buses[ i ].line_string );
-        text_layer_set_background_color(s_buses[ i ].line, get_line_color(s_buses[ i ].line_string));
-        text_layer_set_text( s_buses[ i ].dest, s_buses[ i ].dest_string );
-        text_layer_set_text( s_buses[ i ].eta, s_buses[ i ].eta_string );
-    }   
+    }
+    
+    update_bus_text_layers();
 }
 
 
@@ -223,9 +256,23 @@ void parse_bus_data( const char* bus_data )
 //==================================================================================================
 // Button click handling
 
-void update_click_handler( ClickRecognizerRef recognizer, void* context )
+void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
 {
-    common_get_update_callback()();
+    if( s_current_page > 0 )
+    {
+        --s_current_page;
+        update_bus_text_layers();
+    }
+}
+
+void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
+{
+    int pages_required = ( NUM_BUSES / NUM_BUSES_PER_PAGE ) + ( NUM_BUSES % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
+    if( s_current_page + 1 < pages_required )
+    {
+        ++s_current_page;
+        update_bus_text_layers();
+    }
 }
 
 void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
@@ -237,8 +284,8 @@ void click_provider( Window* window )
 {
     window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
     
-    window_single_click_subscribe( BUTTON_ID_DOWN, update_click_handler );
-    window_single_click_subscribe( BUTTON_ID_UP, update_click_handler );
+    window_single_click_subscribe( BUTTON_ID_UP, bus_display_previous_page );
+    window_single_click_subscribe( BUTTON_ID_DOWN, bus_display_next_page );    
 }
 
 
