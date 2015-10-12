@@ -151,24 +151,15 @@ GColor get_line_color( const char* line )
 
 void update_bus_text_layers()
 {
-    int buses_on_page = min( NUM_BUSES - s_current_page * NUM_BUSES_PER_PAGE, NUM_BUSES_PER_PAGE );
-    
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
         int base_index = NUM_BUSES_PER_PAGE * s_current_page;
         int bus_index = base_index + i;
         
-        if( true || i < buses_on_page )
-        {
-            set_bus_text_layer( i, s_buses[ bus_index ].line_string,
-                                   get_line_color( s_buses[ bus_index ].line_string ),
-                                   s_buses[ bus_index ].dest_string,
-                                   s_buses[ bus_index ].eta_string );
-        }
-        else
-        {
-            set_bus_text_layer( i, "", GColorWhite, "", "" );
-        }
+        set_bus_text_layer( i, s_buses[ bus_index ].line_string,
+                                get_line_color( s_buses[ bus_index ].line_string ),
+                                s_buses[ bus_index ].dest_string,
+                                s_buses[ bus_index ].eta_string );
     }
 }
 
