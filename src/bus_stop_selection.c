@@ -115,17 +115,36 @@ void apply_bus_stop_data()
 
 void parse_bus_stop_data( const char* bus_stop_data )
 {
+    APP_LOG( APP_LOG_LEVEL_INFO, "%s", bus_stop_data );
+    
     char id_buffer[ 8 ];
     
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
-        if( *bus_stop_data != '\0' )
+        if( i != 0 && *bus_stop_data != '\0' )
         {
             bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
             bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
             bus_stop_data = common_read_csv_item( bus_stop_data, id_buffer, 8 );
             s_bus_stops[ i ].id = atoi( id_buffer );
-        }    
+        }
+        else
+        {
+            // we need to consume the first entry if we requested a bus stop
+            if( common_get_current_bus_stop_id() != -1 )
+            {
+                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
+                ++bus_stop_data;
+                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
+                ++bus_stop_data;
+                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
+                ++bus_stop_data;
+            }
+            
+            snprintf( s_bus_stops[ i ].name_string, sizeof( "GPS closest" ), "GPS closest" );
+            snprintf( s_bus_stops[ i ].dist_string, sizeof( " " ), " " );
+            s_bus_stops[ i ].id = -1;
+        }
     }
     
     apply_bus_stop_data();
@@ -180,7 +199,7 @@ void bus_stop_selection_window_load()
     text_layer_set_text( s_bus_stop_sel_status, "No updates, yet." );
     
     create_bus_stop_text_layers();
-    update_bus_stop_selection( 0 );
+    update_bus_stop_selection( -s_selected_bus_stop_idx ); // reset to index 0
 }
 
 void bus_stop_selection_window_unload()

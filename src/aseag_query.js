@@ -203,10 +203,36 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
         bus_stops = updateBusStopDistances( coords, bus_stops );
-        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 10 );
+        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 6 );
    
-        xhrRequest( query_url_bus + bus_stops[ 0 ].id, 'GET', function( response_text ) {
-            console.log( '[ACbus] Getting next buses for ' + bus_stops[ 0 ].name + '.' );
+        // closest bus stop is default
+        var selected_bus_stop_id = bus_stops[ 0 ].id;
+        var selected_bus_stop_name = bus_stops[ 0 ].name;
+   
+        // if another one was requested, we update the data structure
+        if( requested_bus_stop_id != -1 )
+        {   
+            var requested_bus_stop_name = "";
+            var requested_bus_stop_distance = 0.0;
+            
+            for( var i = 0; i != bus_stops.length; ++i ) {
+                if( bus_stops[ i ].id == requested_bus_stop_id ) {
+                    requested_bus_stop_name = bus_stops[ i ].name;
+                    requested_bus_stop_distance = bus_stops[ i ].dist;
+                }
+            }
+            
+            selected_bus_stop_name = requested_bus_stop_name;
+            selected_bus_stop_id = requested_bus_stop_id;
+            
+            bus_stop_data = requested_bus_stop_name + ';' +
+                            ( Math.round( requested_bus_stop_distance / 100 ) / 10 ) + ' km;' +
+                            requested_bus_stop_id + ';' +
+                            bus_stop_data; 
+        }
+   
+        xhrRequest( query_url_bus + selected_bus_stop_id, 'GET', function( response_text ) {
+            console.log( '[ACbus] Getting next buses for ' + selected_bus_stop_name + '.' );
 
             var buses = parseBuses( response_text );
             var bus_data = compileListOfNextBuses( buses, 21 );            
