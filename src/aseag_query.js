@@ -125,7 +125,8 @@ function compileListOfClosestBusStops( bus_stops, num_closest_bus_stops ) {
     
     for( var j = 0; j < num_bus_stops; ++j ) {
         bus_stop_data += bus_stops[ j ].name + ';' +
-                            ( Math.round( bus_stops[ j ].dist / 100 ) / 10 ) + ' km';
+                         ( Math.round( bus_stops[ j ].dist / 100 ) / 10 ) + ' km;' +
+                         bus_stops[ j ].id;
         if( j + 1 < num_bus_stops ) {
             bus_stop_data += ";";
         }

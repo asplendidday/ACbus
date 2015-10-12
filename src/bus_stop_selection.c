@@ -115,12 +115,16 @@ void apply_bus_stop_data()
 
 void parse_bus_stop_data( const char* bus_stop_data )
 {
+    char id_buffer[ 8 ];
+    
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
         if( *bus_stop_data != '\0' )
         {
             bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
             bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
+            bus_stop_data = common_read_csv_item( bus_stop_data, id_buffer, 8 );
+            s_bus_stops[ i ].id = atoi( id_buffer );
         }    
     }
     
@@ -144,6 +148,8 @@ void bus_stop_selection_next_page( ClickRecognizerRef recognizer, void* context 
 
 void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void* context )
 {
+    common_set_current_bus_stop_id( s_bus_stops[ s_selected_bus_stop_idx ].id );
+    common_get_update_callback()();
     window_stack_pop( true );
 }
 
