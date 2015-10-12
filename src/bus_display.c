@@ -124,6 +124,11 @@ void fill_line_colors()
  */
 GColor get_line_color( const char* line )
 {
+    if( *line == '\0' )
+    {
+        return GColorWhite;    
+    }
+    
     int hash = 0;
     char c = line[ 0 ]+13;
     int i = 1;
@@ -153,7 +158,7 @@ void update_bus_text_layers()
         int base_index = NUM_BUSES_PER_PAGE * s_current_page;
         int bus_index = base_index + i;
         
-        if( i < buses_on_page )
+        if( true || i < buses_on_page )
         {
             set_bus_text_layer( i, s_buses[ bus_index ].line_string,
                                    get_line_color( s_buses[ bus_index ].line_string ),
@@ -222,6 +227,13 @@ void parse_bus_data( const char* bus_data )
             bus_data = common_read_csv_item( bus_data, s_buses[ i ].dest_string, DEST_BUFFER_SIZE );
             // read eta
             bus_data = common_read_csv_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
+        }
+        else
+        {
+            // if no data is available, we still need to reset the strings
+            s_buses[ i ].line_string[ 0 ] = '\0';
+            s_buses[ i ].dest_string[ 0 ] = '\0';
+            s_buses[ i ].eta_string[ 0 ] = '\0';
         }
     }
     
