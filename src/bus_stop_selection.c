@@ -13,7 +13,7 @@
 #define BUS_STOP_DIST_WIDTH      38
 
 #define BUS_STOP_NAME_SIZE       32
-#define BUS_STOP_DIST_SIZE        4
+#define BUS_STOP_DIST_SIZE        8
 
 
 //==================================================================================================
@@ -64,7 +64,7 @@ void create_bus_stop_text_layers()
     {
         common_create_text_layer( &s_bus_stops[ i ].name, s_bus_stop_sel_wnd,
                                   bus_stop_name_rect( i ), GColorWhite, GColorBlack,
-                                  FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentLeft );
+                                  FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
         common_create_text_layer( &s_bus_stops[ i ].dist, s_bus_stop_sel_wnd,
                                   bus_stop_dist_rect( i ), GColorWhite, GColorBlack,
                                   FONT_KEY_GOTHIC_14, GTextAlignmentRight );
@@ -85,7 +85,9 @@ void update_bus_stop_selection( int relative_change )
 {
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorWhite );
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorWhite );
-    
+    text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorBlack );
+    text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorBlack );
+       
     int new_selected_idx = s_selected_bus_stop_idx + relative_change;
         
     if( new_selected_idx >= 0 && new_selected_idx < NUM_BUS_STOPS )
@@ -95,31 +97,31 @@ void update_bus_stop_selection( int relative_change )
         
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorDarkCandyAppleRed );
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorDarkCandyAppleRed );
+    text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorWhite );
+    text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorWhite );
 }
 
 void apply_bus_stop_data()
 {
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
-        text_layer_set_text( s_bus_stops[ i ].name, s_bus_stops[ i ].name_string );
-        text_layer_set_text( s_bus_stops[ i ].dist, s_bus_stops[ i ].dist_string );
+        if( s_bus_stops[ i ].name != NULL && s_bus_stops[ i ].dist != NULL )
+        {        
+            text_layer_set_text( s_bus_stops[ i ].name, s_bus_stops[ i ].name_string );
+            text_layer_set_text( s_bus_stops[ i ].dist, s_bus_stops[ i ].dist_string );
+        }
     }
 }
 
 void parse_bus_stop_data( const char* bus_stop_data )
 {
-    for( int i = 0; i != NUM_BUS_STOPS; ++i ) // spare the first one for GPS selection
+    for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
-        if( i != 0 )
+        if( *bus_stop_data != '\0' )
         {
-            
-        }
-        else
-        {
-            snprintf( s_bus_stops[ i ].name_string, sizeof( s_bus_stops[ i ].name_string ), "Auto-select closest" );
-            snprintf( s_bus_stops[ i ].dist_string, sizeof( s_bus_stops[ i ].dist_string ), " " );
-            s_bus_stops[ i ].id = -1;
-        }
+            bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
+            bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
+        }    
     }
     
     apply_bus_stop_data();
@@ -214,6 +216,8 @@ void bus_stop_selection_show()
     if( s_bus_stop_sel_wnd )
     {
         window_stack_push( s_bus_stop_sel_wnd, true );
+        apply_bus_stop_data(); // to show data that might have arrived before window
+                               // was shown for the first time
     }
 }
     
@@ -224,7 +228,7 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
     {
         case BUS_STOP_DATA:
         {
-            //parse_bus_stop_data( msg_tuple->value->cstring );
+            parse_bus_stop_data( msg_tuple->value->cstring );
         }
         break;
         default:

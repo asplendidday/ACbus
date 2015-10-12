@@ -197,42 +197,11 @@ void update_time_stamp()
 //==================================================================================================
 // Message parsing
 
-const char* find_next_separator( const char* cursor, const char separator )
-{
-    while( *cursor != separator && *cursor != '\0' )
-    {
-        ++cursor;
-    }
-    return cursor;    
-}
-
-const char* read_bus_item( const char* bus_data, char* target, int max_bytes )
-{
-    const char* end_cursor = find_next_separator( bus_data, ';' );
-    
-    // use "max_bytes - 1" as comparison to save a byte for the trailing '\0' char
-    const int num_bytes = min( end_cursor - bus_data, max_bytes - 1 );
-    
-    // if num_bytes is 0 then target will be set to the empty string
-    // in this case, memcpy will essentially be a noop
-    memcpy( target, bus_data, num_bytes );
-    target[ num_bytes ] = '\0';
-    
-    if( *end_cursor == '\0' )
-    {
-        return end_cursor;
-    }
-    else
-    {
-        return ++end_cursor;
-    }
-}
-
 void parse_first_bus_stop( const char* bus_stop_data )
 {
     if( bus_stop_data != NULL && bus_stop_data != '\0' )
     {
-        read_bus_item( bus_stop_data, s_bus_stop_name, DEST_BUFFER_SIZE );  
+        common_read_csv_item( bus_stop_data, s_bus_stop_name, DEST_BUFFER_SIZE );  
         text_layer_set_text( s_bus_display_title, s_bus_stop_name );
     }
 }
@@ -248,11 +217,11 @@ void parse_bus_data( const char* bus_data )
         if( *bus_data != '\0' ) // eof reached?
         {
             // read line
-            bus_data = read_bus_item( bus_data, s_buses[ i ].line_string, LINE_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, s_buses[ i ].line_string, LINE_BUFFER_SIZE );
             // read destination
-            bus_data = read_bus_item( bus_data, s_buses[ i ].dest_string, DEST_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, s_buses[ i ].dest_string, DEST_BUFFER_SIZE );
             // read eta
-            bus_data = read_bus_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
         }
     }
     

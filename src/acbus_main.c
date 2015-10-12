@@ -29,7 +29,8 @@ void inbox_dropped_callback( AppMessageResult reason, void* context )
 
 void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
 {
-    APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed!" );
+    APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
+             common_app_message_result_to_string( reason ) );
 }
 
 void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -108,7 +109,7 @@ void deinit()
 }
 
 
-int main(void)
+int main()
 {
 	init();
 	app_event_loop();

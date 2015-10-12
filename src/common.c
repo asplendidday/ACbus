@@ -76,3 +76,60 @@ int common_get_current_bus_stop_id()
 {
     return s_current_bus_stop_id;
 }
+
+
+const char* common_find_next_separator( const char* cursor, const char separator )
+{
+    while( *cursor != separator && *cursor != '\0' )
+    {
+        ++cursor;
+    }
+    return cursor;    
+}
+
+const char* common_read_csv_item( const char* csv_data, char* target, int max_bytes )
+{
+    const char* end_cursor = common_find_next_separator( csv_data, ';' );
+    
+    const int num_bytes = min( end_cursor - csv_data, max_bytes - 1 );
+    // use "max_bytes - 1" as comparison to save a byte for the trailing '\0' char
+    
+    // if num_bytes is 0 then target will be set to the empty string
+    // in this case, memcpy will essentially be a noop
+    memcpy( target, csv_data, num_bytes );
+    target[ num_bytes ] = '\0';
+    
+    if( *end_cursor == '\0' )
+    {
+        return end_cursor;
+    }
+    else
+    {
+        return ++end_cursor;
+    }
+}
+
+
+const char* common_app_message_result_to_string( AppMessageResult result )
+{
+    switch( result )
+    {
+        case APP_MSG_OK:                return "APP_MSG_OK";                break;
+        case APP_MSG_SEND_TIMEOUT:      return "APP_MSG_SEND_TIMEOUT";      break;
+        case APP_MSG_SEND_REJECTED:     return "APP_MSG_SEND_REJECTED";     break;
+        case APP_MSG_NOT_CONNECTED:     return "APP_MSG_NOT_CONNECTED";     break;
+        case APP_MSG_APP_NOT_RUNNING:   return "APP_MSG_APP_NOT_RUNNING";   break;
+        case APP_MSG_INVALID_ARGS:      return "APP_MSG_INVALID_ARGS";      break;
+        case APP_MSG_BUSY:              return "APP_MSG_BUSY";              break;
+        case APP_MSG_BUFFER_OVERFLOW:   return "APP_MSG_BUFFER_OVERFLOW";   break;
+        case APP_MSG_ALREADY_RELEASED:  return "APP_MSG_ALREADY_RELEASED";  break;
+        case APP_MSG_CALLBACK_ALREADY_REGISTERED: return "APP_MSG_CALLBACK_ALREADY_REGISTERED"; break;
+        case APP_MSG_CALLBACK_NOT_REGISTERED: return "APP_MSG_CALLBACK_NOT_REGISTERED"; break;
+        case APP_MSG_OUT_OF_MEMORY:     return "APP_MSG_OUT_OF_MEMORY";     break;
+        case APP_MSG_CLOSED:            return "APP_MSG_CLOSED";            break;
+        case APP_MSG_INTERNAL_ERROR:    return "APP_MSG_INTERNAL_ERROR";    break;
+        default: return "Unknown result id."; break;
+    }
+    
+    return "";
+}
