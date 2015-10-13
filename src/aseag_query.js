@@ -179,6 +179,8 @@ function compileListOfNextBuses( buses, num_next_buses ) {
         }
     }
     
+    bus_data = num_buses + ';' + bus_data;
+    
     console.log( '[ACbus] Compiled list of next ' + num_buses + ' buses: ' + bus_data ); 
     return bus_data;
 }

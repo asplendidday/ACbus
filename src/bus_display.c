@@ -21,6 +21,7 @@
 #define DEST_BUFFER_SIZE        32
 #define ETA_BUFFER_SIZE          6
 
+
 //==================================================================================================
 //==================================================================================================
 // Variables
@@ -33,6 +34,7 @@ static GColor s_line_colors[ 10 ];
 static int s_current_page = 0;
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
+static int s_num_buses_transmitted = 0;
     
 struct {
     TextLayer* line;
@@ -220,6 +222,13 @@ void parse_first_bus_stop( const char* bus_stop_data )
  */
 void parse_bus_data( const char* bus_data )
 {   
+    if( *bus_data != '\0' )
+    {
+        char num_buses_string[ 8 ];
+        bus_data = common_read_csv_item( bus_data, num_buses_string, 8 );
+        s_num_buses_transmitted = atoi( num_buses_string );
+    }
+    
     for( int i = 0; i < NUM_BUSES; ++i )
     {
         if( *bus_data != '\0' ) // eof reached?
@@ -259,8 +268,11 @@ void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
 
 void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
 {
-    int pages_required = ( NUM_BUSES / NUM_BUSES_PER_PAGE ) + ( NUM_BUSES % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
-    if( s_current_page + 1 < pages_required )
+    int curr_num_buses = min( NUM_BUSES, s_num_buses_transmitted );
+    int max_pages = ( curr_num_buses / NUM_BUSES_PER_PAGE ) +
+                    ( curr_num_buses % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
+    
+    if( s_current_page + 1 < max_pages )
     {
         ++s_current_page;
         update_bus_text_layers();
@@ -349,6 +361,7 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
+            s_current_page = 0; // reset page to first, if new data arrives
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
