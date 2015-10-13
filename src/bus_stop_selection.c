@@ -105,11 +105,8 @@ void apply_bus_stop_data()
 {
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
-        if( s_bus_stops[ i ].name != NULL && s_bus_stops[ i ].dist != NULL )
-        {        
-            text_layer_set_text( s_bus_stops[ i ].name, s_bus_stops[ i ].name_string );
-            text_layer_set_text( s_bus_stops[ i ].dist, s_bus_stops[ i ].dist_string );
-        }
+        text_layer_set_text( s_bus_stops[ i ].name, s_bus_stops[ i ].name_string );
+        text_layer_set_text( s_bus_stops[ i ].dist, s_bus_stops[ i ].dist_string );
     }
 }
 
@@ -186,7 +183,7 @@ void bus_stop_selection_click_provider( Window* window )
 //==================================================================================================
 // Window (un)loading
 
-void bus_stop_selection_window_load()
+void bus_stop_selection_create_resources()
 {
     common_create_text_layer( &s_bus_stop_sel_title, s_bus_stop_sel_wnd, GRect( 24, 0, 120, 20 ),
                               GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD,
@@ -198,17 +195,23 @@ void bus_stop_selection_window_load()
     common_create_text_layer( &s_bus_stop_sel_status, s_bus_stop_sel_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
     text_layer_set_text( s_bus_stop_sel_status, "No updates, yet." );
     
-    create_bus_stop_text_layers();
-    update_bus_stop_selection( -s_selected_bus_stop_idx ); // reset to index 0
+    create_bus_stop_text_layers();    
 }
 
-void bus_stop_selection_window_unload()
-{
+void bus_stop_selection_destroy_resources()
+{   
     destroy_bus_stop_text_layers();
     text_layer_destroy( s_bus_stop_sel_status );
     bitmap_layer_destroy( s_bus_stop_sel_banner );
-    text_layer_destroy( s_bus_stop_sel_title );
+    text_layer_destroy( s_bus_stop_sel_title );   
 }
+
+
+void bus_stop_selection_window_load()
+{
+    update_bus_stop_selection( -s_selected_bus_stop_idx ); // reset to index 0
+}
+
 
 
 //==================================================================================================
@@ -218,11 +221,11 @@ void bus_stop_selection_window_unload()
 void bus_stop_selection_create()
 {
     s_bus_stop_sel_wnd = window_create();
+    bus_stop_selection_create_resources();
 
     window_set_window_handlers( s_bus_stop_sel_wnd, ( WindowHandlers )
     {
-        .load = bus_stop_selection_window_load,
-        .unload = bus_stop_selection_window_unload
+        .load = bus_stop_selection_window_load
     } );
     
     window_set_click_config_provider( s_bus_stop_sel_wnd,
@@ -231,7 +234,7 @@ void bus_stop_selection_create()
 
 void bus_stop_selection_destroy()
 {
-    common_set_current_bus_stop_id( s_bus_stops[ s_selected_bus_stop_idx ].id );
+    bus_stop_selection_destroy_resources();
     window_destroy( s_bus_stop_sel_wnd );
 }
 
@@ -260,4 +263,9 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
         // intentionally left blank
         break;
     }
+}
+
+void bus_stop_selection_set_update_status_text( const char* status_text )
+{
+    text_layer_set_text( s_bus_stop_sel_status, status_text );
 }

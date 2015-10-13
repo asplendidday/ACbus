@@ -337,7 +337,6 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
-            update_time_stamp();
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
@@ -348,7 +347,7 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 }
 
 
-void bus_display_indicate_update_pending()
+void bus_display_set_update_status_text( const char* status_text )
 {
-    text_layer_set_text( s_bus_display_status, "Updating..." );
+    text_layer_set_text( s_bus_display_status, status_text );
 }

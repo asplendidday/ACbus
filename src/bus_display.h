@@ -11,4 +11,4 @@ void bus_display_show();
 
 void bus_display_handle_msg_tuple( Tuple* msg_tuple );
 
-void bus_display_indicate_update_pending();
+void bus_display_set_update_status_text( const char* status_text );
