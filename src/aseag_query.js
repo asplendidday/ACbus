@@ -256,9 +256,9 @@ function determineClosestBusStop( requested_bus_stop_id ) {
     navigator.geolocation.getCurrentPosition(
         // success
         function( pos ) {
-            //var gps_coords = pos.coords;
+            var gps_coords = pos.coords;
             // Debug info for Aachen Bushof
-            var gps_coords = { longitude: 6.0908191, latitude: 50.7775936 };
+            //var gps_coords = { longitude: 6.0908191, latitude: 50.7775936 };
             
             console.log( '[ACbus] Received new gps coords at ' +
                          '(lon: ' + gps_coords.longitude + ', lat: ' + gps_coords.latitude + ').'  );
