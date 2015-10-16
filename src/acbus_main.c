@@ -17,7 +17,7 @@
 static int s_update_age_counter_in_secs = 0;
 static int s_currently_updating = 0;
 static int s_first_update_performed = 0;
-static int s_first_update_after_n_secs = 2;
+static int s_first_update_after_n_secs = 1;
 
 //==================================================================================================
 //==================================================================================================
