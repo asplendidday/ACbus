@@ -17,7 +17,7 @@
 static int s_update_age_counter_in_secs = 0;
 static int s_currently_updating = 0;
 static int s_first_update_performed = 0;
-static int s_first_update_after_n_secs = 1;
+static int s_first_update_after_n_secs = 2;
 
 //==================================================================================================
 //==================================================================================================
@@ -148,7 +148,8 @@ void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
     
     if( s_update_age_counter_in_secs % UPDATE_FREQUENCY_IN_SECS == 0 ||
         ( s_first_update_performed == 0 && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
-    {    
+    {   
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();
     }
 }
