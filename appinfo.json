@@ -16,7 +16,7 @@
             {
                 "file": "images/h.png",
                 "name": "ICON_H",
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "images/acbus_small.png",
@@ -25,7 +25,7 @@
                 "targetPlatforms": [
                     "basalt"
                 ],
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "images/acbus_middle.png",
@@ -33,7 +33,7 @@
                 "targetPlatforms": [
                     "basalt"
                 ],
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "images/acbus_large.png",
@@ -41,7 +41,7 @@
                 "targetPlatforms": [
                     "basalt"
                 ],
-                "type": "png"
+                "type": "bitmap"
             }
         ]
     },

@@ -256,6 +256,7 @@ function determineClosestBusStop( requested_bus_stop_id ) {
     navigator.geolocation.getCurrentPosition(
         // success
         function( pos ) {
+            console.log( '[ACbus] GPS request succeeded.' );
             var gps_coords = pos.coords;
             // Debug info for Aachen Bushof
             //var gps_coords = { longitude: 6.0908191, latitude: 50.7775936 };
@@ -269,7 +270,7 @@ function determineClosestBusStop( requested_bus_stop_id ) {
             console.log( '[ACbus] An error occured while getting new location data. Error: ' + err );
         },
         // geoloc request params    
-        { timeout: 15000, maximumAge: 60000 }
+        { timeout: 10000, maximumAge: 10000 }
     );
 }
 
@@ -286,11 +287,12 @@ Pebble.addEventListener( 'appmessage',
     function( e ) {
         console.log( '[ACbus] AppMessage received!' ) ;
 
-        var request = JSON.parse( JSON.stringify( e.payload ) );
+        var stringified = JSON.stringify( e.payload );
+        var request = JSON.parse( stringified );
         console.log( JSON.stringify( e.payload ) );
-        
-        var requested_bus_stop_id = request[ 'REQ_BUS_STOP_ID' ];
-        var update_bus_stop_list = request[ 'REQ_UPDATE_BUS_STOP_LIST' ];
+                
+        var requested_bus_stop_id = request.REQ_BUS_STOP_ID;
+        var update_bus_stop_list = request.REQ_UPDATE_BUS_STOP_LIST;
         
         console.log( '[ACbus] Request received with REQ_BUS_STOP_ID <' + requested_bus_stop_id +
                      '> and REQ_UPDATE_BUS_STOP_LIST <' + update_bus_stop_list + '>.' );
