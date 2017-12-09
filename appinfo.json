@@ -9,7 +9,7 @@
         "location"
     ],
     "companyName": "Cavemen",
-    "longName": "ACbus",
+    "longName": "ASEAG",
     "projectType": "native",
     "resources": {
         "media": [
@@ -46,7 +46,7 @@
         ]
     },
     "sdkVersion": "3",
-    "shortName": "ACbus",
+    "shortName": "ASEAG",
     "targetPlatforms": [
         "basalt"
     ],
