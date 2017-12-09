@@ -43,7 +43,8 @@ void refresh_update_status()
     {
         if( seconds < 30 )
         {
-            snprintf( status_text, sizeof( "Updated <30 secs ago" ) , "Updated <30 secs ago" );
+	    // This is the normal case (updated <30 s ago), don't show a message
+	    status_text[0] = '\0';
         }
         else
         {
