@@ -23,7 +23,7 @@ static int s_first_update_after_n_secs = 2;
 //==================================================================================================
 // Helper functions
 
-void refresh_update_status()
+static void refresh_update_status()
 {
     static char status_text[ 24 ];
     status_text[ 0 ] = '\0';
@@ -74,7 +74,7 @@ void refresh_update_status()
 //==================================================================================================
 // App message handling
 
-void inbox_received_callback( DictionaryIterator* iterator, void* context )
+static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
@@ -97,19 +97,19 @@ void inbox_received_callback( DictionaryIterator* iterator, void* context )
     }
 }
 
-void inbox_dropped_callback( AppMessageResult reason, void* context )
+static void inbox_dropped_callback( AppMessageResult reason, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Message dropped!" );
 }
 
-void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
+static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
     s_currently_updating = 0;
 }
 
-void outbox_sent_callback( DictionaryIterator* iterator, void* context )
+static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Outbox send successful." );
 }
@@ -119,7 +119,7 @@ void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 //==================================================================================================
 // Update request message
 
-void send_update_request()
+static void send_update_request()
 {
     if( s_currently_updating == 0 )
     {
@@ -142,7 +142,7 @@ void send_update_request()
 //==================================================================================================
 // Tick handling
 
-void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
+static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
     ++s_update_age_counter_in_secs;
     refresh_update_status();
@@ -155,7 +155,7 @@ void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
     }
 }
 
-void tap_handler( AccelAxisType axis, int32_t direction )
+static void tap_handler( AccelAxisType axis, int32_t direction )
 {
     common_get_update_callback()();
 }
@@ -165,7 +165,7 @@ void tap_handler( AccelAxisType axis, int32_t direction )
 //==================================================================================================
 // Main and (de)init functions
 
-void init()
+static void init()
 {
     // set up global common state
     common_set_update_callback( send_update_request );
@@ -190,7 +190,7 @@ void init()
     accel_tap_service_subscribe( tap_handler );
 }
 
-void deinit()
+static void deinit()
 {
     bus_display_destroy();
     bus_stop_selection_destroy();

@@ -25,7 +25,7 @@ static TextLayer* s_bus_stop_sel_title = NULL;
 static TextLayer* s_bus_stop_sel_status = NULL;
 static BitmapLayer* s_bus_stop_sel_banner = NULL;
 
-struct {
+static struct {
     TextLayer* name;
     TextLayer* dist;
     
@@ -41,7 +41,7 @@ static int s_selected_bus_stop_idx = 0;
 //==================================================================================================
 // Various helper functions
 
-GRect bus_stop_name_rect( int index )
+static GRect bus_stop_name_rect( int index )
 {
     return GRect( BUS_STOP_MARGIN_LEFT,
                   BUS_STOP_MARGIN_TOP + index * BUS_STOP_HEIGHT,
@@ -49,7 +49,7 @@ GRect bus_stop_name_rect( int index )
                   BUS_STOP_HEIGHT );
 }
 
-GRect bus_stop_dist_rect( int index )
+static GRect bus_stop_dist_rect( int index )
 {
     return GRect( BUS_STOP_MARGIN_LEFT + BUS_STOP_NAME_WIDTH,
                   BUS_STOP_MARGIN_TOP + index * BUS_STOP_HEIGHT,
@@ -58,7 +58,7 @@ GRect bus_stop_dist_rect( int index )
 }
 
 
-void create_bus_stop_text_layers()
+static void create_bus_stop_text_layers()
 {
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
@@ -71,7 +71,7 @@ void create_bus_stop_text_layers()
     }
 }
 
-void destroy_bus_stop_text_layers()
+static void destroy_bus_stop_text_layers()
 {
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
@@ -81,7 +81,7 @@ void destroy_bus_stop_text_layers()
 }
 
 
-void update_bus_stop_selection( int relative_change )
+static void update_bus_stop_selection( int relative_change )
 {
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorWhite );
     text_layer_set_background_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorWhite );
@@ -101,7 +101,7 @@ void update_bus_stop_selection( int relative_change )
     text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorWhite );
 }
 
-void apply_bus_stop_data()
+static void apply_bus_stop_data()
 {
     for( int i = 0; i != NUM_BUS_STOPS; ++i )
     {
@@ -110,7 +110,7 @@ void apply_bus_stop_data()
     }
 }
 
-void parse_bus_stop_data( const char* bus_stop_data )
+static void parse_bus_stop_data( const char* bus_stop_data )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "%s", bus_stop_data );
     
@@ -152,17 +152,17 @@ void parse_bus_stop_data( const char* bus_stop_data )
 //==================================================================================================
 // Button click handling
 
-void bus_stop_selection_previous_page( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_previous_page( ClickRecognizerRef recognizer, void* context )
 {
     update_bus_stop_selection( -1 );
 }
 
-void bus_stop_selection_next_page( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_next_page( ClickRecognizerRef recognizer, void* context )
 {
     update_bus_stop_selection( +1 );
 }
 
-void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void* context )
 {
     common_set_current_bus_stop_id( s_bus_stops[ s_selected_bus_stop_idx ].id );
     common_get_update_callback()();
@@ -170,7 +170,7 @@ void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void* contex
 }
 
 
-void bus_stop_selection_click_provider( Window* window )
+static void bus_stop_selection_click_provider( Window* window )
 {
     window_single_click_subscribe( BUTTON_ID_SELECT, bus_stop_selection_make_choice );
     
@@ -183,7 +183,7 @@ void bus_stop_selection_click_provider( Window* window )
 //==================================================================================================
 // Window (un)loading
 
-void bus_stop_selection_create_resources()
+static void bus_stop_selection_create_resources()
 {
     common_create_text_layer( &s_bus_stop_sel_title, s_bus_stop_sel_wnd, GRect( 24, 0, 120, 20 ),
                               GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD,
@@ -198,7 +198,7 @@ void bus_stop_selection_create_resources()
     create_bus_stop_text_layers();    
 }
 
-void bus_stop_selection_destroy_resources()
+static void bus_stop_selection_destroy_resources()
 {   
     destroy_bus_stop_text_layers();
     text_layer_destroy( s_bus_stop_sel_status );
@@ -207,7 +207,7 @@ void bus_stop_selection_destroy_resources()
 }
 
 
-void bus_stop_selection_window_load()
+static void bus_stop_selection_window_load()
 {
     update_bus_stop_selection( -s_selected_bus_stop_idx ); // reset to index 0
 }

@@ -36,13 +36,13 @@ static int s_current_page = 0;
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
 static int s_num_buses_transmitted = 0;
     
-struct {
+static struct {
     TextLayer* line;
     TextLayer* dest;
     TextLayer* eta;
 } s_bus_display_lines[ NUM_BUSES_PER_PAGE ];
     
-struct {    
+static struct {
     char line_string[ LINE_BUFFER_SIZE ];
     char dest_string[ DEST_BUFFER_SIZE ];
     char eta_string[ ETA_BUFFER_SIZE ];
@@ -53,7 +53,7 @@ struct {
 //==================================================================================================
 // Various helper functions
 
-GRect line_rect( int index )
+static GRect line_rect( int index )
 {
     return GRect( 0,
                   BUS_ENTRY_MARGIN_TOP + index * BUS_ENTRY_HEIGHT,
@@ -61,7 +61,7 @@ GRect line_rect( int index )
                   BUS_ENTRY_HEIGHT );
 }
 
-GRect dest_rect( int index )
+static GRect dest_rect( int index )
 {
     return GRect( BUS_ENTRY_MARGIN_LEFT + BUS_ENTRY_LINE_WIDTH,
                   BUS_ENTRY_MARGIN_TOP + index * BUS_ENTRY_HEIGHT,
@@ -69,7 +69,7 @@ GRect dest_rect( int index )
                   BUS_ENTRY_HEIGHT );
 }
 
-GRect eta_rect( int index )
+static GRect eta_rect( int index )
 {
     return GRect( BUS_ENTRY_MARGIN_LEFT + BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH,
                   BUS_ENTRY_MARGIN_TOP + index * BUS_ENTRY_HEIGHT,
@@ -77,7 +77,7 @@ GRect eta_rect( int index )
                   BUS_ENTRY_HEIGHT );
 }
 
-void create_bus_text_layers()
+static void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
@@ -87,7 +87,7 @@ void create_bus_text_layers()
     }
 }
 
-void destroy_bus_text_layers()
+static void destroy_bus_text_layers()
 {
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
@@ -97,7 +97,7 @@ void destroy_bus_text_layers()
     }
 }
 
-void set_bus_text_layer( int index, const char* line, GColor line_color, const char* dest, const char* eta )
+static void set_bus_text_layer( int index, const char* line, GColor line_color, const char* dest, const char* eta )
 {
     text_layer_set_text( s_bus_display_lines[ index ].line, line );
     text_layer_set_background_color( s_bus_display_lines[ index ].line, line_color );
@@ -106,7 +106,7 @@ void set_bus_text_layer( int index, const char* line, GColor line_color, const c
 }
 
 
-void fill_line_colors()
+static void fill_line_colors()
 {
     s_line_colors[ 0 ] = GColorIslamicGreen;
     s_line_colors[ 1 ] = GColorMintGreen;
@@ -124,7 +124,7 @@ void fill_line_colors()
 /**
  * Use the line name to get color
  */
-GColor get_line_color( const char* line )
+static GColor get_line_color( const char* line )
 {
     if( *line == '\0' )
     {
@@ -151,7 +151,7 @@ GColor get_line_color( const char* line )
 }
 
 
-void update_bus_text_layers()
+static void update_bus_text_layers()
 {
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
@@ -166,7 +166,7 @@ void update_bus_text_layers()
 }
 
 
-void update_time_stamp()
+static void update_time_stamp()
 {
 	// Update last update timestamp
     time_t temp = time( NULL );
@@ -195,7 +195,7 @@ void update_time_stamp()
 //==================================================================================================
 // Message parsing
 
-void parse_first_bus_stop( const char* bus_stop_data )
+static void parse_first_bus_stop( const char* bus_stop_data )
 {
     if( bus_stop_data != NULL && bus_stop_data != '\0' )
     {
@@ -220,7 +220,7 @@ void parse_first_bus_stop( const char* bus_stop_data )
  * This function takes the string as provided by a BUS_DATA app message, parses it,
  * and uses the parsed data to update all bus text layers.
  */
-void parse_bus_data( const char* bus_data )
+static void parse_bus_data( const char* bus_data )
 {   
     if( *bus_data != '\0' )
     {
@@ -257,7 +257,7 @@ void parse_bus_data( const char* bus_data )
 //==================================================================================================
 // Button click handling
 
-void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
+static void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
 {
     if( s_current_page > 0 )
     {
@@ -266,7 +266,7 @@ void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
     }
 }
 
-void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
+static void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
 {
     int curr_num_buses = min( NUM_BUSES, s_num_buses_transmitted );
     int max_pages = ( curr_num_buses / NUM_BUSES_PER_PAGE ) +
@@ -279,12 +279,12 @@ void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
     }
 }
 
-void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
+static void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
 {
     bus_stop_selection_show();
 }
 
-void click_provider( Window* window )
+static void click_provider( Window* window )
 {
     window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
     
@@ -297,7 +297,7 @@ void click_provider( Window* window )
 //==================================================================================================
 // Window (un)loading
 
-void bus_display_window_load()
+static void bus_display_window_load()
 {
     common_create_text_layer( &s_bus_display_title, s_bus_display_wnd, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
     text_layer_set_text( s_bus_display_title, "Initializing ..." );
@@ -310,7 +310,7 @@ void bus_display_window_load()
     create_bus_text_layers(); 
 }
 
-void bus_display_window_unload()
+static void bus_display_window_unload()
 {
     destroy_bus_text_layers();
     bitmap_layer_destroy( s_bus_display_banner );

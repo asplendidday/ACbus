@@ -12,7 +12,7 @@ static int s_current_bus_stop_id = -1;
 //==================================================================================================
 // Helper functions
 
-void update_proc( Layer* layer, GContext* context )
+static void update_proc( Layer* layer, GContext* context )
 {
     // @TODO reusing this function for every h_icon is a dirty thing to do, since it must be
     //       ensured that the draw calls below fit every window that has an h_icon 
