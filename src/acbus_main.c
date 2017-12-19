@@ -33,11 +33,11 @@ static void refresh_update_status()
     
     if( s_currently_updating == 1 )
     {
-        snprintf( status_text, sizeof( "Updating..." ) , "Updating..." );
+        snprintf( status_text, sizeof( status_text ) , "Updating..." );
     }
     else if( s_first_update_performed == 0 )
     {
-        snprintf( status_text, sizeof( "No updates, yet." ) , "No updates, yet." );
+        snprintf( status_text, sizeof( status_text ) , "No updates, yet." );
     }
     else if( minutes == 0 )
     {
@@ -48,7 +48,7 @@ static void refresh_update_status()
         }
         else
         {
-            snprintf( status_text, sizeof( "Updated <1 min ago" ) , "Updated <1 min ago" );
+            snprintf( status_text, sizeof( status_text ) , "Updated <1 min ago" );
         }
     }
     else
@@ -57,11 +57,11 @@ static void refresh_update_status()
         
         if( minutes <= 5 )
         {
-            snprintf( status_text, sizeof( "Updated ~0 mins ago" ), "Updated ~%i mins ago", minutes );
+            snprintf( status_text, sizeof( status_text ), "Updated ~%i mins ago", minutes );
         }
         else
         {
-            snprintf( status_text, sizeof( "Updated >5 mins ago" ) , "Updated >5 mins ago" );
+            snprintf( status_text, sizeof( status_text ) , "Updated >5 mins ago" );
         }
     }
     

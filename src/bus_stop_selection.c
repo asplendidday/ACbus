@@ -138,8 +138,8 @@ static void parse_bus_stop_data( const char* bus_stop_data )
                 ++bus_stop_data;
             }
             
-            snprintf( s_bus_stops[ i ].name_string, sizeof( "GPS closest" ), "GPS closest" );
-            snprintf( s_bus_stops[ i ].dist_string, sizeof( " " ), " " );
+            snprintf( s_bus_stops[ i ].name_string, sizeof( s_bus_stops->name_string ), "GPS closest" );
+            snprintf( s_bus_stops[ i ].dist_string, sizeof( s_bus_stops->dist_string ), " " );
             s_bus_stops[ i ].id = -1;
         }
     }
