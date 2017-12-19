@@ -289,7 +289,7 @@ Pebble.addEventListener( 'appmessage',
 
         var stringified = JSON.stringify( e.payload );
         var request = JSON.parse( stringified );
-        console.log( JSON.stringify( e.payload ) );
+        console.log( '[ACbus] payload:', JSON.stringify( e.payload ) );
                 
         var requested_bus_stop_id = request.REQ_BUS_STOP_ID;
         var update_bus_stop_list = request.REQ_UPDATE_BUS_STOP_LIST;
