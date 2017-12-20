@@ -4,9 +4,9 @@
 //==================================================================================================
 // Definitions
 
-#define NUM_BUS_STOPS             7
+#define NUM_BUS_STOPS             9
 
-#define BUS_STOP_MARGIN_TOP      28
+#define BUS_STOP_MARGIN_TOP      25
 #define BUS_STOP_MARGIN_LEFT      3
 #define BUS_STOP_HEIGHT          16
 #define BUS_STOP_NAME_WIDTH     100
@@ -22,7 +22,6 @@
 
 static Window* s_bus_stop_sel_wnd = NULL;
 static TextLayer* s_bus_stop_sel_title = NULL;
-static TextLayer* s_bus_stop_sel_status = NULL;
 static BitmapLayer* s_bus_stop_sel_banner = NULL;
 
 static struct {
@@ -174,16 +173,12 @@ static void bus_stop_selection_create_resources()
     
     common_create_h_icon( &s_bus_stop_sel_banner, s_bus_stop_sel_wnd );
         
-    common_create_text_layer( &s_bus_stop_sel_status, s_bus_stop_sel_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
-    text_layer_set_text( s_bus_stop_sel_status, "No updates, yet." );
-    
     create_bus_stop_text_layers();    
 }
 
 static void bus_stop_selection_destroy_resources()
 {   
     destroy_bus_stop_text_layers();
-    text_layer_destroy( s_bus_stop_sel_status );
     bitmap_layer_destroy( s_bus_stop_sel_banner );
     text_layer_destroy( s_bus_stop_sel_title );   
 }
@@ -245,9 +240,4 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
         // intentionally left blank
         break;
     }
-}
-
-void bus_stop_selection_set_update_status_text( const char* status_text )
-{
-    text_layer_set_text( s_bus_stop_sel_status, status_text );
 }
