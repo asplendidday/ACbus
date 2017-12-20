@@ -5,11 +5,11 @@
 //==================================================================================================
 // Definitions
 
-#define NUM_BUS_STOPS             9
+#define NUM_BUS_STOPS             6
 
-#define BUS_STOP_MARGIN_TOP      25
+#define BUS_STOP_MARGIN_TOP      27
 #define BUS_STOP_MARGIN_LEFT      3
-#define BUS_STOP_HEIGHT          16
+#define BUS_STOP_HEIGHT          23
 #define BUS_STOP_NAME_WIDTH     100
 #define BUS_STOP_DIST_WIDTH      38
 
@@ -64,10 +64,10 @@ static void create_bus_stop_text_layers()
     {
         common_create_text_layer( &s_bus_stops[ i ].name, s_bus_stop_sel_wnd,
                                   bus_stop_name_rect( i ), GColorWhite, GColorBlack,
-                                  FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
+                                  FONT_KEY_GOTHIC_18, GTextAlignmentLeft );
         common_create_text_layer( &s_bus_stops[ i ].dist, s_bus_stop_sel_wnd,
                                   bus_stop_dist_rect( i ), GColorWhite, GColorBlack,
-                                  FONT_KEY_GOTHIC_14, GTextAlignmentRight );
+                                  FONT_KEY_GOTHIC_18, GTextAlignmentRight );
     }
 }
 

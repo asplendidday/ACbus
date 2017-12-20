@@ -199,7 +199,7 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
         bus_stops = updateBusStopDistances( coords, bus_stops );
-        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 9 );
+        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 6 );
    
         // closest bus stop is default
         var selected_bus_stop_id = bus_stops[ 0 ].id;

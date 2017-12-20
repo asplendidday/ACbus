@@ -6,14 +6,14 @@
 
 // Layout information
 #define NUM_BUSES               21
-#define NUM_BUSES_PER_PAGE       9
+#define NUM_BUSES_PER_PAGE       6
     
-#define BUS_ENTRY_MARGIN_TOP    25
+#define BUS_ENTRY_MARGIN_TOP    27
 #define BUS_ENTRY_MARGIN_LEFT    3
-#define BUS_ENTRY_HEIGHT        16
-#define BUS_ENTRY_LINE_WIDTH    28
+#define BUS_ENTRY_HEIGHT        23
+#define BUS_ENTRY_LINE_WIDTH    26
 #define BUS_ENTRY_DEST_WIDTH    92
-#define BUS_ENTRY_ETA_WIDTH     18
+#define BUS_ENTRY_ETA_WIDTH     20
 
 // Bus data buffer sizes
 #define LINE_BUFFER_SIZE         6
@@ -79,9 +79,9 @@ static void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentCenter );
-        common_create_text_layer( &s_bus_display_lines[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14, GTextAlignmentLeft );
-        common_create_text_layer( &s_bus_display_lines[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_14_BOLD, GTextAlignmentRight );
+        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentCenter );
+        common_create_text_layer( &s_bus_display_lines[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18, GTextAlignmentLeft );
+        common_create_text_layer( &s_bus_display_lines[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentRight );
     }
 }
 
