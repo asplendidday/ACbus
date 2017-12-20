@@ -28,7 +28,18 @@
 static Window* s_bus_display_wnd = NULL;
 static TextLayer* s_bus_display_title = NULL;
 static BitmapLayer* s_bus_display_banner = NULL;
-static GColor s_line_colors[ 10 ];
+static const uint8_t s_line_colors[] = {
+    GColorIslamicGreenARGB8,
+    GColorMintGreenARGB8,
+    GColorElectricBlueARGB8,
+    GColorVividCeruleanARGB8,
+    GColorChromeYellowARGB8,
+    GColorSunsetOrangeARGB8,
+    GColorIndigoARGB8,
+    GColorBrilliantRoseARGB8,
+    GColorCadetBlueARGB8,
+    GColorYellowARGB8
+};
 static int s_current_page = 0;
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
@@ -103,23 +114,6 @@ static void set_bus_text_layer( int index, const char* line, GColor line_color, 
     text_layer_set_text( s_bus_display_lines[ index ].eta, eta );  
 }
 
-
-static void fill_line_colors()
-{
-    // https://developer.pebble.com/guides/tools-and-resources/color-picker/
-    s_line_colors[ 0 ] = GColorIslamicGreen;
-    s_line_colors[ 1 ] = GColorMintGreen;
-    s_line_colors[ 2 ] = GColorElectricBlue;
-    s_line_colors[ 3 ] = GColorVividCerulean;
-    s_line_colors[ 4 ] = GColorChromeYellow;
-    s_line_colors[ 5 ] = GColorSunsetOrange;
-    s_line_colors[ 6 ] = GColorIndigo;
-    s_line_colors[ 7 ] = GColorBrilliantRose;
-    s_line_colors[ 8 ] = GColorCadetBlue;
-    s_line_colors[ 9 ] = GColorYellow;
-}
-
-
 /**
  * Use the line name to get color
  */
@@ -146,7 +140,7 @@ static GColor get_line_color( const char* line )
         int tmp = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
         hash = tmp;
     }
-    return s_line_colors[ hash ];
+    return (GColor8){ .argb=s_line_colors[ hash ] };
 }
 
 
@@ -298,8 +292,6 @@ void bus_display_create()
             .unload = bus_display_window_unload
         } );   
        
-    fill_line_colors();
-    
     window_set_click_config_provider( s_bus_display_wnd, ( ClickConfigProvider ) click_provider );  
 }
 
