@@ -340,6 +340,8 @@ void bus_display_show()
 
 void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 {
+    if ( ! window_stack_contains_window( s_bus_display_wnd ) ) return;
+
     switch( msg_tuple->key )
     {
         case BUS_STOP_DATA:

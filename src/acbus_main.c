@@ -119,7 +119,6 @@ static void init()
     // init windows
     bus_stop_selection_create();
     bus_display_create();
-    bus_display_show();
     bus_stop_selection_show();
     
     // set up app messages
