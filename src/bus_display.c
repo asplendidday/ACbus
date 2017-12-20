@@ -106,9 +106,10 @@ static void set_bus_text_layer( int index, const char* line, GColor line_color, 
 
 static void fill_line_colors()
 {
+    // https://developer.pebble.com/guides/tools-and-resources/color-picker/
     s_line_colors[ 0 ] = GColorIslamicGreen;
     s_line_colors[ 1 ] = GColorMintGreen;
-    s_line_colors[ 2 ] = GColorMidnightGreen;
+    s_line_colors[ 2 ] = GColorElectricBlue;
     s_line_colors[ 3 ] = GColorVividCerulean;
     s_line_colors[ 4 ] = GColorChromeYellow;
     s_line_colors[ 5 ] = GColorSunsetOrange;
