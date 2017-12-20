@@ -165,9 +165,12 @@ function compileListOfNextBuses( buses, num_next_buses ) {
     var bus_data = "";
 
     for( var j = 0; j < num_buses; ++j ) {
+        var eta = Math.round( buses[ j ].eta / ( 1000 * 60 ) );
+        if (eta > 99) break;
+
         bus_data += buses[ j ].number + ';' +
                     buses[ j ].dest + ';' +
-                    Math.round( buses[ j ].eta / ( 1000 * 60 ) );
+                    eta;
         if( j + 1 < num_buses ) {
             bus_data += ";";
         }

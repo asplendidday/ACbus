@@ -5,15 +5,15 @@
 // Definitions
 
 // Layout information
-#define NUM_BUSES               21
 #define NUM_BUSES_PER_PAGE       6
+#define NUM_BUSES                ( NUM_BUSES_PER_PAGE * 3 )
     
 #define BUS_ENTRY_MARGIN_TOP    27
 #define BUS_ENTRY_MARGIN_LEFT    3
 #define BUS_ENTRY_HEIGHT        23
 #define BUS_ENTRY_LINE_WIDTH    26
-#define BUS_ENTRY_DEST_WIDTH    92
-#define BUS_ENTRY_ETA_WIDTH     20
+#define BUS_ENTRY_DEST_WIDTH    94
+#define BUS_ENTRY_ETA_WIDTH     18
 
 // Bus data buffer sizes
 #define LINE_BUFFER_SIZE         6
@@ -173,11 +173,18 @@ static void update_bus_text_layers()
     {
         const int base_index = NUM_BUSES_PER_PAGE * s_current_page;
         const int bus_index = base_index + i;
-        
-        set_bus_text_layer( i, s_buses[ bus_index ].line_string,
+
+        if ( bus_index < NUM_BUSES )
+        {
+            set_bus_text_layer( i, s_buses[ bus_index ].line_string,
                                get_line_color( s_buses[ bus_index ].line_string ),
                                s_buses[ bus_index ].dest_string,
                                s_buses[ bus_index ].eta_string );
+        }
+        else
+        {
+            set_bus_text_layer( i, "", GColorWhite, "", "" );
+        }
     }
 }
 
@@ -209,11 +216,17 @@ static void parse_first_bus_stop( const char* bus_stop_data )
  */
 static void parse_bus_data( const char* bus_data )
 {   
-    if( *bus_data != '\0' )
+    memset( s_buses, 0, sizeof( s_buses ) );
+
+    if( *bus_data )
     {
         char num_buses_string[ 8 ];
-        bus_data = common_read_csv_item( bus_data, num_buses_string, 8 );
+        bus_data = common_read_csv_item( bus_data, num_buses_string, sizeof( num_buses_string ) );
         s_num_buses_transmitted = atoi( num_buses_string );
+    }
+    else
+    {
+        s_num_buses_transmitted = 0;
     }
     
     for( int i = 0; i < NUM_BUSES; ++i )
@@ -229,14 +242,9 @@ static void parse_bus_data( const char* bus_data )
         }
         else
         {
-            // if no data is available, we still need to reset the strings
-            s_buses[ i ].line_string[ 0 ] = '\0';
-            s_buses[ i ].eta_string[ 0 ] = '\0';
-
             if ( i==0 )
-                strcpy( s_buses->dest_string,"(keine Fahrt)");
-            else
-                s_buses[ i ].dest_string[ 0 ] = '\0';
+                strcpy( s_buses->dest_string,"Keine Fahrt");
+            break;
         }
     }
     
