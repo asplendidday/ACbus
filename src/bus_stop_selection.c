@@ -155,7 +155,6 @@ static void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void*
 static void bus_stop_selection_click_provider( Window* window )
 {
     window_single_click_subscribe( BUTTON_ID_SELECT, bus_stop_selection_make_choice );
-    
     window_single_click_subscribe( BUTTON_ID_UP, bus_stop_selection_previous_page );
     window_single_click_subscribe( BUTTON_ID_DOWN, bus_stop_selection_next_page );    
 }
@@ -189,7 +188,6 @@ static void bus_stop_selection_window_load()
 {
     update_bus_stop_selection( -s_selected_bus_stop_idx ); // reset to index 0
 }
-
 
 
 //==================================================================================================

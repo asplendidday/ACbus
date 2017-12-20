@@ -56,7 +56,7 @@ void common_create_text_layer( TextLayer** text_layer, Window* window, GRect rec
 
 void common_create_h_icon( BitmapLayer** bitmap_layer, Window* window )
 {
-    GBitmap* h_icon = gbitmap_create_with_resource( RESOURCE_ID_ICON_H );
+    GBitmap* const h_icon = gbitmap_create_with_resource( RESOURCE_ID_ICON_H );
     *bitmap_layer = bitmap_layer_create( GRect( 3, 3, 18, 18 ) );
     bitmap_layer_set_compositing_mode( *bitmap_layer, GCompOpSet );
     bitmap_layer_set_background_color( *bitmap_layer, GColorClear );

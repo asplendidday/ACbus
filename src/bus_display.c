@@ -90,9 +90,33 @@ static void create_bus_text_layers()
 {    
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        common_create_text_layer( &s_bus_display_lines[ i ].line, s_bus_display_wnd, line_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentCenter );
-        common_create_text_layer( &s_bus_display_lines[ i ].dest, s_bus_display_wnd, dest_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18, GTextAlignmentLeft );
-        common_create_text_layer( &s_bus_display_lines[ i ].eta, s_bus_display_wnd, eta_rect( i ), GColorWhite, GColorBlack, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentRight );
+        common_create_text_layer(
+            &s_bus_display_lines[ i ].line,
+            s_bus_display_wnd,
+            line_rect( i ),
+            GColorWhite,
+            GColorBlack,
+            FONT_KEY_GOTHIC_18_BOLD,
+            GTextAlignmentCenter
+        );
+        common_create_text_layer(
+            &s_bus_display_lines[ i ].dest,
+            s_bus_display_wnd,
+            dest_rect( i ),
+            GColorWhite,
+            GColorBlack,
+            FONT_KEY_GOTHIC_18,
+            GTextAlignmentLeft
+        );
+        common_create_text_layer(
+            &s_bus_display_lines[ i ].eta,
+            s_bus_display_wnd,
+            eta_rect( i ),
+            GColorWhite,
+            GColorBlack,
+            FONT_KEY_GOTHIC_18_BOLD,
+            GTextAlignmentRight
+        );
     }
 }
 
@@ -137,8 +161,7 @@ static GColor get_line_color( const char* line )
   
     while( hash > 9 )
     {
-        int tmp = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
-        hash = tmp;
+        hash = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
     }
     return (GColor8){ .argb=s_line_colors[ hash ] };
 }
@@ -148,8 +171,8 @@ static void update_bus_text_layers()
 {
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        int base_index = NUM_BUSES_PER_PAGE * s_current_page;
-        int bus_index = base_index + i;
+        const int base_index = NUM_BUSES_PER_PAGE * s_current_page;
+        const int bus_index = base_index + i;
         
         set_bus_text_layer( i, s_buses[ bus_index ].line_string,
                                get_line_color( s_buses[ bus_index ].line_string ),
@@ -232,8 +255,8 @@ static void bus_display_previous_page( ClickRecognizerRef recognizer, void* cont
 
 static void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
 {
-    int curr_num_buses = min( NUM_BUSES, s_num_buses_transmitted );
-    int max_pages = ( curr_num_buses / NUM_BUSES_PER_PAGE ) +
+    const int curr_num_buses = min( NUM_BUSES, s_num_buses_transmitted );
+    const int max_pages = ( curr_num_buses / NUM_BUSES_PER_PAGE ) +
                     ( curr_num_buses % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
     
     if( s_current_page + 1 < max_pages )
@@ -263,7 +286,15 @@ static void click_provider( Window* window )
 
 static void bus_display_window_load()
 {
-    common_create_text_layer( &s_bus_display_title, s_bus_display_wnd, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
+    common_create_text_layer(
+        &s_bus_display_title,
+        s_bus_display_wnd,
+        GRect( 24, 0, 120, 20 ),
+        GColorDarkCandyAppleRed,
+        GColorWhite,
+        FONT_KEY_GOTHIC_18_BOLD,
+        GTextAlignmentLeft
+    );
  
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     
