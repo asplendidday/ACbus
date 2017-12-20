@@ -231,8 +231,12 @@ static void parse_bus_data( const char* bus_data )
         {
             // if no data is available, we still need to reset the strings
             s_buses[ i ].line_string[ 0 ] = '\0';
-            s_buses[ i ].dest_string[ 0 ] = '\0';
             s_buses[ i ].eta_string[ 0 ] = '\0';
+
+            if ( i==0 )
+                strcpy( s_buses->dest_string,"(keine Fahrt)");
+            else
+                s_buses[ i ].dest_string[ 0 ] = '\0';
         }
     }
     

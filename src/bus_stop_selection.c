@@ -206,6 +206,8 @@ void bus_stop_selection_create()
     
     window_set_click_config_provider( s_bus_stop_sel_wnd,
                                       ( ClickConfigProvider ) bus_stop_selection_click_provider );
+
+    strcpy( s_bus_stops->name_string, "Moment ..." );
 }
 
 void bus_stop_selection_destroy()
