@@ -120,6 +120,7 @@ static void init()
     bus_stop_selection_create();
     bus_display_create();
     bus_display_show();
+    bus_stop_selection_show();
     
     // set up app messages
     app_message_register_inbox_received( inbox_received_callback );

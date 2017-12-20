@@ -1,4 +1,5 @@
 #include "bus_stop_selection.h"
+#include "bus_display.h"
 
 //==================================================================================================
 //==================================================================================================
@@ -147,7 +148,7 @@ static void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void*
 {
     common_set_current_bus_stop_id( s_bus_stops[ s_selected_bus_stop_idx ].id );
     common_get_update_callback()();
-    window_stack_pop( true );
+    bus_display_show();
 }
 
 
