@@ -205,7 +205,7 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
     xhrRequest( query_url_stops, 'GET', function( response_text ) {
         var bus_stops = parseBusStops( response_text );
         bus_stops = updateBusStopDistances( coords, bus_stops );
-        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 6 );
+        var bus_stop_data = compileListOfClosestBusStops( bus_stops, 7 );
    
         // closest bus stop is default
         var selected_bus_stop_id = bus_stops[ 0 ].id;
@@ -226,11 +226,6 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
             
             selected_bus_stop_name = requested_bus_stop_name;
             selected_bus_stop_id = requested_bus_stop_id;
-            
-            bus_stop_data = requested_bus_stop_name + ';' +
-                            ( Math.round( requested_bus_stop_distance / 100 ) / 10 ) + ' km;' +
-                            requested_bus_stop_id + ';' +
-                            bus_stop_data; 
         }
    
         xhrRequest( query_url_bus + selected_bus_stop_id, 'GET', function( response_text ) {

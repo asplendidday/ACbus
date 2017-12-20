@@ -197,23 +197,20 @@ static void update_time_stamp()
 
 static void parse_first_bus_stop( const char* bus_stop_data )
 {
-    if( bus_stop_data != NULL && bus_stop_data != '\0' )
-    {
-        // add no indicator if bus stop is detected automatically
-        if( common_get_current_bus_stop_id() == -1 )
-        {
-            common_read_csv_item( bus_stop_data, s_bus_stop_name, DEST_BUFFER_SIZE );            
-        }
-        else
-        {
-            char bus_stop_name[ DEST_BUFFER_SIZE ];
-            common_read_csv_item( bus_stop_data, bus_stop_name, DEST_BUFFER_SIZE );
-            // 2 + strlen --> * char + \0 char + bus stop name
-            snprintf( s_bus_stop_name, 2 + strlen( bus_stop_name ), "*%s", bus_stop_name );
-        }
-        
-        text_layer_set_text( s_bus_display_title, s_bus_stop_name );
-    }
+	const int curr = common_get_current_bus_stop_id();
+	while (bus_stop_data && *bus_stop_data)
+	{
+		char dist[8],id[8];
+		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stop_name, sizeof(s_bus_stop_name) );
+		bus_stop_data = common_read_csv_item( bus_stop_data, dist, sizeof(dist) );
+		bus_stop_data = common_read_csv_item( bus_stop_data, id, sizeof(id) );
+
+		if (curr<0 || atoi(id)==curr)
+		{
+			text_layer_set_text( s_bus_display_title, s_bus_stop_name );
+			break;
+		}
+	}
 }
 
 /**

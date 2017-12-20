@@ -60,7 +60,7 @@ static GRect bus_stop_dist_rect( int index )
 
 static void create_bus_stop_text_layers()
 {
-    for( int i = 0; i != NUM_BUS_STOPS; ++i )
+    for( int i = 0; i < NUM_BUS_STOPS; ++i )
     {
         common_create_text_layer( &s_bus_stops[ i ].name, s_bus_stop_sel_wnd,
                                   bus_stop_name_rect( i ), GColorWhite, GColorBlack,
@@ -73,7 +73,7 @@ static void create_bus_stop_text_layers()
 
 static void destroy_bus_stop_text_layers()
 {
-    for( int i = 0; i != NUM_BUS_STOPS; ++i )
+    for( int i = 0; i < NUM_BUS_STOPS; ++i )
     {
         text_layer_destroy( s_bus_stops[ i ].name );
         text_layer_destroy( s_bus_stops[ i ].dist );
@@ -88,7 +88,7 @@ static void update_bus_stop_selection( int relative_change )
     text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].name, GColorBlack );
     text_layer_set_text_color( s_bus_stops[ s_selected_bus_stop_idx ].dist, GColorBlack );
        
-    int new_selected_idx = s_selected_bus_stop_idx + relative_change;
+    const int new_selected_idx = s_selected_bus_stop_idx + relative_change;
         
     if( new_selected_idx >= 0 && new_selected_idx < NUM_BUS_STOPS )
     {       
@@ -103,7 +103,7 @@ static void update_bus_stop_selection( int relative_change )
 
 static void apply_bus_stop_data()
 {
-    for( int i = 0; i != NUM_BUS_STOPS; ++i )
+    for( int i = 0; i < NUM_BUS_STOPS; ++i )
     {
         text_layer_set_text( s_bus_stops[ i ].name, s_bus_stops[ i ].name_string );
         text_layer_set_text( s_bus_stops[ i ].dist, s_bus_stops[ i ].dist_string );
@@ -112,37 +112,19 @@ static void apply_bus_stop_data()
 
 static void parse_bus_stop_data( const char* bus_stop_data )
 {
-    APP_LOG( APP_LOG_LEVEL_INFO, "%s", bus_stop_data );
+    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] parse_bus_stop_data: %s", bus_stop_data );
     
     char id_buffer[ 8 ];
     
-    for( int i = 0; i != NUM_BUS_STOPS; ++i )
-    {
-        if( i != 0 && *bus_stop_data != '\0' )
-        {
-            bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
-            bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
-            bus_stop_data = common_read_csv_item( bus_stop_data, id_buffer, 8 );
-            s_bus_stops[ i ].id = atoi( id_buffer );
-        }
-        else
-        {
-            // we need to consume the first entry if we requested a bus stop
-            if( common_get_current_bus_stop_id() != -1 )
-            {
-                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
-                ++bus_stop_data;
-                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
-                ++bus_stop_data;
-                bus_stop_data = common_find_next_separator( bus_stop_data, ';' );
-                ++bus_stop_data;
-            }
-            
-            snprintf( s_bus_stops[ i ].name_string, sizeof( s_bus_stops->name_string ), "GPS closest" );
-            snprintf( s_bus_stops[ i ].dist_string, sizeof( s_bus_stops->dist_string ), " " );
-            s_bus_stops[ i ].id = -1;
-        }
-    }
+    for( int i = 0; i < NUM_BUS_STOPS; ++i )
+	{
+		if( !*bus_stop_data ) break;
+
+		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
+		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
+		bus_stop_data = common_read_csv_item( bus_stop_data, id_buffer, sizeof( id_buffer ) );
+		s_bus_stops[ i ].id = atoi( id_buffer );
+	}
     
     apply_bus_stop_data();
 }
