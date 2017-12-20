@@ -270,7 +270,7 @@ static void click_provider( Window* window )
 static void bus_display_window_load()
 {
     common_create_text_layer( &s_bus_display_title, s_bus_display_wnd, GRect( 24, 0, 120, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_18_BOLD, GTextAlignmentLeft );
-    text_layer_set_text( s_bus_display_title, "Initializing ..." );
+    text_layer_set_text( s_bus_display_title, "ASEAG" );
  
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     

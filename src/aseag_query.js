@@ -15,18 +15,12 @@ function degToRad( angleInDeg ) {
     return angleInDeg / 180.0 * Math.PI;
 }
 
-function killUmlauts( string ) {
-    return string.replace( 'ß', 'ss' ).replace( 'ö', 'oe' ).replace( 'ä', 'ae' ).replace( 'ü', 'ue' );
-}
-
 function removeQuotes( string ) {
     return string.slice( 1, string.length - 1);
 }
 
 function cleanUpBusStopName( bus_stop_name ) {
-    bus_stop_name = removeQuotes( bus_stop_name );
-    bus_stop_name = killUmlauts( bus_stop_name );
-    return bus_stop_name;
+    return removeQuotes( bus_stop_name );
 }
 
 
@@ -125,7 +119,7 @@ function compileListOfClosestBusStops( bus_stops, num_closest_bus_stops ) {
     
     for( var j = 0; j < num_bus_stops; ++j ) {
         bus_stop_data += bus_stops[ j ].name + ';' +
-                         ( Math.round( bus_stops[ j ].dist / 100 ) / 10 ) + ' km;' +
+                         ( ( Math.round( bus_stops[ j ].dist / 100 ) / 10 ) + ' km;' ).replace('.',',') +
                          bus_stops[ j ].id;
         if( j + 1 < num_bus_stops ) {
             bus_stop_data += ";";
