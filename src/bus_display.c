@@ -217,42 +217,105 @@ static void parse_first_bus_stop( const char* bus_stop_data )
 
 /**
  * This function takes the string as provided by a BUS_DATA app message, parses it,
- * and uses the parsed data to update all bus text layers.
+ * and uses the parsed data to update all bus text layers. It tries to keep the
+ * cursor on the same bus even if it is no longer in the same position or has
+ * changed its ETA.
  */
 static void parse_bus_data( const char* bus_data )
 {   
+    // Save the location the cursor currently is on
+    char cur_line[ LINE_BUFFER_SIZE ];
+    char cur_dest[ DEST_BUFFER_SIZE ];
+    int cur_eta;
+    const int cur_idx = s_current_bus + NUM_BUSES_PER_PAGE * s_current_page;
+    if( cur_idx < s_num_buses_transmitted )
+    {
+        strcpy( cur_line, s_buses[ cur_idx ].line_string );
+        strcpy( cur_dest, s_buses[ cur_idx ].dest_string );
+        cur_eta = atoi(s_buses[ cur_idx ].eta_string);
+    }
+    else
+    {
+        // WTF
+        *cur_line = *cur_dest = '\0';
+        cur_eta = 0;
+    }
+
+    // Initialize bus array
     memset( s_buses, 0, sizeof( s_buses ) );
 
+    // Find out how many buses we received
     if( *bus_data )
     {
         char num_buses_string[ 8 ];
         bus_data = common_read_csv_item( bus_data, num_buses_string, sizeof( num_buses_string ) );
         s_num_buses_transmitted = atoi( num_buses_string );
+        // Ok by what do we need it for in bus_data? Could just as well count
+        // the buses we scan in the following loop ...
     }
     else
     {
         s_num_buses_transmitted = 0;
     }
-    
+
+    // Copy new buses into display buffers, and find the index of the best
+    // match for the bus the cursor is on. best_delta is the difference
+    // between the cursor position's and the best match's ETA.
+    int best_idx = -1;
+    int best_delta = 0;
     for( int i = 0; i < NUM_BUSES; ++i )
     {
-        if( *bus_data != '\0' ) // eof reached?
+        if( *bus_data )
         {
-            // read line
-            bus_data = common_read_csv_item( bus_data, s_buses[ i ].line_string, LINE_BUFFER_SIZE );
-            // read destination
-            bus_data = common_read_csv_item( bus_data, s_buses[ i ].dest_string, DEST_BUFFER_SIZE );
-            // read eta
-            bus_data = common_read_csv_item( bus_data, s_buses[ i ].eta_string, ETA_BUFFER_SIZE );
+            // Where we put this bus' data
+            char *const line = s_buses[ i ].line_string;
+            char *const dest = s_buses[ i ].dest_string;
+            char *const etaS = s_buses[ i ].eta_string;
+
+            // Scan this bus' data into the display buffers
+            bus_data = common_read_csv_item( bus_data, line, LINE_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, dest, DEST_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, etaS, ETA_BUFFER_SIZE );
+
+            // Check best match for cursor position
+            if ( ! strcmp( line, cur_line ) && ! strcmp( dest, cur_dest ) )
+            {
+                // It's the same bus (same line and destination), check ETA
+                const int delta = abs( cur_eta - atoi( etaS ) );
+                if ( best_idx < 0 || delta < best_delta )
+                {
+                    // Found a new best match
+                    best_delta = delta;
+                    best_idx = i;
+                }
+            }
         }
         else
         {
+            // Reached the end
             if ( i==0 )
+            {
+                // ... without finding anything
                 strcpy( s_buses->dest_string,"Keine Fahrt");
+            }
             break;
         }
     }
+
+    // Reconstruct cursor position
+    if( best_idx < 0 )
+    {
+        // No match found, reset to beginning
+        s_current_page = s_current_bus = 0;
+    }
+    else
+    {
+        // Go to best match
+        s_current_page = best_idx / NUM_BUSES_PER_PAGE;
+        s_current_bus  = best_idx % NUM_BUSES_PER_PAGE;
+    }
     
+    // Update the display
     update_bus_text_layers();
 }
 
@@ -388,7 +451,6 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
-            s_current_page = s_current_bus = 0; // reset cursor if new data arrives
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
