@@ -309,8 +309,10 @@ static void bus_display_select( ClickRecognizerRef recognizer, void* context )
 
 static void click_provider( Window* window )
 {
-    window_single_click_subscribe( BUTTON_ID_UP, bus_display_up );
-    window_single_click_subscribe( BUTTON_ID_DOWN, bus_display_down );
+    const int ms = 200;     // Auto repeat time in milliseconds
+    window_single_repeating_click_subscribe( BUTTON_ID_UP, ms, bus_display_up );
+    window_single_repeating_click_subscribe( BUTTON_ID_DOWN, ms, bus_display_down );
+
     window_single_click_subscribe( BUTTON_ID_SELECT, bus_display_select );
 }
 

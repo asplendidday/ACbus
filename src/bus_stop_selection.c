@@ -134,17 +134,17 @@ static void parse_bus_stop_data( const char* bus_stop_data )
 //==================================================================================================
 // Button click handling
 
-static void bus_stop_selection_previous_page( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_up( ClickRecognizerRef recognizer, void* context )
 {
     update_bus_stop_selection( -1 );
 }
 
-static void bus_stop_selection_next_page( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_down( ClickRecognizerRef recognizer, void* context )
 {
     update_bus_stop_selection( +1 );
 }
 
-static void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void* context )
+static void bus_stop_selection_select( ClickRecognizerRef recognizer, void* context )
 {
     common_set_current_bus_stop_id( s_bus_stops[ s_selected_bus_stop_idx ].id );
     common_get_update_callback()();
@@ -154,9 +154,11 @@ static void bus_stop_selection_make_choice( ClickRecognizerRef recognizer, void*
 
 static void bus_stop_selection_click_provider( Window* window )
 {
-    window_single_click_subscribe( BUTTON_ID_SELECT, bus_stop_selection_make_choice );
-    window_single_click_subscribe( BUTTON_ID_UP, bus_stop_selection_previous_page );
-    window_single_click_subscribe( BUTTON_ID_DOWN, bus_stop_selection_next_page );    
+    const int ms = 200;     // Auto repeat time in milliseconds
+    window_single_repeating_click_subscribe( BUTTON_ID_UP, ms, bus_stop_selection_up );
+    window_single_repeating_click_subscribe( BUTTON_ID_DOWN, ms, bus_stop_selection_down );
+
+    window_single_click_subscribe( BUTTON_ID_SELECT, bus_stop_selection_select );
 }
 
 
