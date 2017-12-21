@@ -8,7 +8,10 @@
 // Definitions
 
 #define UPDATE_FREQUENCY_IN_SECS    30
-    
+
+// 1 to reload bus data when shaking the watch.
+// 0 to conserve battery.
+#define RELOAD_ON_TAP 0
     
 //==================================================================================================
 //==================================================================================================
@@ -101,10 +104,12 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
     }
 }
 
+#if RELOAD_ON_TAP
 static void tap_handler( AccelAxisType axis, int32_t direction )
 {
     common_get_update_callback()();
 }
+#endif
 
 
 //==================================================================================================
@@ -132,7 +137,9 @@ static void init()
     tick_timer_service_subscribe( SECOND_UNIT, tick_handler );
     
     // set up tap recognition
+    #if RELOAD_ON_TAP
     accel_tap_service_subscribe( tap_handler );
+    #endif
 }
 
 static void deinit()
