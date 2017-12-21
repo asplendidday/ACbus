@@ -145,7 +145,7 @@ function parseBuses( response_text ) {
         var bus = {
             number: removeQuotes( bus_line[ 2 ] ),
             dest:   cleanUpBusStopName( bus_line[ 3 ] ),
-            eta:    bus_line[ 4 ] - global_now
+            eta:    Math.max( bus_line[ 4 ] - global_now, 0 )
         };
 
         buses.push( bus );
