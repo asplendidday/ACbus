@@ -29,13 +29,14 @@ static Window* s_bus_display_wnd = NULL;
 static TextLayer* s_bus_display_title = NULL;
 static BitmapLayer* s_bus_display_banner = NULL;
 static const uint8_t s_line_colors[] = {
+    // https://developer.pebble.com/guides/tools-and-resources/color-picker/
     GColorIslamicGreenARGB8,
     GColorMintGreenARGB8,
     GColorElectricBlueARGB8,
     GColorVividCeruleanARGB8,
     GColorChromeYellowARGB8,
     GColorSunsetOrangeARGB8,
-    GColorIndigoARGB8,
+    GColorVividVioletARGB8,
     GColorBrilliantRoseARGB8,
     GColorCadetBlueARGB8,
     GColorYellowARGB8
@@ -163,6 +164,7 @@ static GColor get_line_color( const char* line )
     {
         hash = ( hash % 10 ) + ( (hash/10) % 10 ) + ( (hash/100) % 10 );
     }
+
     return (GColor8){ .argb=s_line_colors[ hash ] };
 }
 
