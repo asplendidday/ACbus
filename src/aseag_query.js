@@ -161,17 +161,19 @@ function compileListOfNextBuses( buses, num_next_buses ) {
         return lhs.eta - rhs.eta;
     } );
     
-    var num_buses = Math.min( num_next_buses, buses.length );
+    var max_buses = Math.min( num_next_buses, buses.length );
+    var num_buses = 0;
     var bus_data = "";
 
-    for( var j = 0; j < num_buses; ++j ) {
+    for( var j = 0; j < max_buses; ++j ) {
         var eta = Math.round( buses[ j ].eta / ( 1000 * 60 ) );
         if (eta > 99) break;
 
+        ++num_buses;
         bus_data += buses[ j ].number + ';' +
                     buses[ j ].dest + ';' +
                     eta;
-        if( j + 1 < num_buses ) {
+        if( j + 1 < max_buses ) {
             bus_data += ";";
         }
     }

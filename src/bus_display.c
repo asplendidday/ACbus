@@ -5,8 +5,9 @@
 // Definitions
 
 // Layout information
+#define NUM_PAGES                3
 #define NUM_BUSES_PER_PAGE       6
-#define NUM_BUSES                ( NUM_BUSES_PER_PAGE * 3 )
+#define NUM_BUSES                ( NUM_BUSES_PER_PAGE * NUM_PAGES )
     
 #define BUS_ENTRY_MARGIN_TOP    27
 #define BUS_ENTRY_MARGIN_LEFT    3
@@ -41,7 +42,12 @@ static const uint8_t s_line_colors[] = {
     GColorCadetBlueARGB8,
     GColorYellowARGB8
 };
+
+// Currently displayed page (0 to NUM_PAGES-1)
 static int s_current_page = 0;
+
+// Index of currently selected bus on current page (0 to NUM_BUSES_PER_PAGE-1)
+static int s_current_bus = 0;
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
 static int s_num_buses_transmitted = 0;
@@ -57,7 +63,6 @@ static struct {
     char dest_string[ DEST_BUFFER_SIZE ];
     char eta_string[ ETA_BUFFER_SIZE ];
 } s_buses[ NUM_BUSES ];
-
 
 //==================================================================================================
 //==================================================================================================
@@ -135,7 +140,11 @@ static void set_bus_text_layer( int index, const char* line, GColor line_color, 
 {
     text_layer_set_text( s_bus_display_lines[ index ].line, line );
     text_layer_set_background_color( s_bus_display_lines[ index ].line, line_color );
+
     text_layer_set_text( s_bus_display_lines[ index ].dest, dest );
+    text_layer_set_text_color( s_bus_display_lines[ index ].dest, index==s_current_bus ? GColorWhite : GColorBlack );
+    text_layer_set_background_color( s_bus_display_lines[ index ].dest, index==s_current_bus ? GColorDarkCandyAppleRed : GColorWhite );
+
     text_layer_set_text( s_bus_display_lines[ index ].eta, eta );  
 }
 
@@ -176,17 +185,11 @@ static void update_bus_text_layers()
         const int base_index = NUM_BUSES_PER_PAGE * s_current_page;
         const int bus_index = base_index + i;
 
-        if ( bus_index < NUM_BUSES )
-        {
-            set_bus_text_layer( i, s_buses[ bus_index ].line_string,
-                               get_line_color( s_buses[ bus_index ].line_string ),
-                               s_buses[ bus_index ].dest_string,
-                               s_buses[ bus_index ].eta_string );
-        }
-        else
-        {
-            set_bus_text_layer( i, "", GColorWhite, "", "" );
-        }
+        set_bus_text_layer( i,
+            s_buses[ bus_index ].line_string,
+            get_line_color( s_buses[ bus_index ].line_string ),
+            s_buses[ bus_index ].dest_string,
+            s_buses[ bus_index ].eta_string );
     }
 }
 
@@ -258,39 +261,57 @@ static void parse_bus_data( const char* bus_data )
 //==================================================================================================
 // Button click handling
 
-static void bus_display_previous_page( ClickRecognizerRef recognizer, void* context )
+static void bus_display_up( ClickRecognizerRef recognizer, void* context )
 {
-    if( s_current_page > 0 )
+    if( s_current_bus > 0 )
     {
+        // Move cursor up on this page
+        --s_current_bus;
+    }
+    else if( s_current_page > 0 )
+    {
+        // Cursor is at top of page, move to bottom of previous page
+        s_current_bus = NUM_BUSES_PER_PAGE - 1;
         --s_current_page;
-        update_bus_text_layers();
     }
+
+    update_bus_text_layers();
 }
 
-static void bus_display_next_page( ClickRecognizerRef recognizer, void* context )
+static void bus_display_down( ClickRecognizerRef recognizer, void* context )
 {
-    const int curr_num_buses = min( NUM_BUSES, s_num_buses_transmitted );
-    const int max_pages = ( curr_num_buses / NUM_BUSES_PER_PAGE ) +
-                    ( curr_num_buses % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
-    
-    if( s_current_page + 1 < max_pages )
+    const int num_buses = min( NUM_BUSES, s_num_buses_transmitted );
+    const int num_pages = ( num_buses / NUM_BUSES_PER_PAGE ) +
+                    ( num_buses % NUM_BUSES_PER_PAGE != 0 ? 1 : 0 );
+
+    if( s_current_bus < NUM_BUSES_PER_PAGE - 1 )
     {
+        // Move cursor one bus down, unless we are at the bottom of
+        // the last page
+        if ( (s_current_bus + 1) + (s_current_page * NUM_BUSES_PER_PAGE) < num_buses )
+        {
+            ++s_current_bus;
+        }
+    } else if( s_current_page + 1 < num_pages )
+    {
+        // Cursor is at bottom of page, move to top of next page
+        s_current_bus = 0;
         ++s_current_page;
-        update_bus_text_layers();
     }
+
+    update_bus_text_layers();
 }
 
-static void open_bus_stop_select_window_handler( ClickRecognizerRef recognizer, void* context )
+static void bus_display_select( ClickRecognizerRef recognizer, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "SELECT in bus display");
 }
 
 static void click_provider( Window* window )
 {
-    window_single_click_subscribe( BUTTON_ID_SELECT, open_bus_stop_select_window_handler );
-    
-    window_single_click_subscribe( BUTTON_ID_UP, bus_display_previous_page );
-    window_single_click_subscribe( BUTTON_ID_DOWN, bus_display_next_page );    
+    window_single_click_subscribe( BUTTON_ID_UP, bus_display_up );
+    window_single_click_subscribe( BUTTON_ID_DOWN, bus_display_down );
+    window_single_click_subscribe( BUTTON_ID_SELECT, bus_display_select );
 }
 
 
@@ -365,7 +386,7 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
-            s_current_page = 0; // reset page to first, if new data arrives
+            s_current_page = s_current_bus = 0; // reset cursor if new data arrives
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
