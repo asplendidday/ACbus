@@ -28,6 +28,7 @@
 
 static Window* s_bus_display_wnd = NULL;
 static TextLayer* s_bus_display_title = NULL;
+static TextLayer* s_bus_display_status = NULL;
 static BitmapLayer* s_bus_display_banner = NULL;
 static const uint8_t s_line_colors[] = {
     // https://developer.pebble.com/guides/tools-and-resources/color-picker/
@@ -257,6 +258,31 @@ static void update_bus_text_layers()
     text_layer_set_text_color( s_zoom_eta_layer, alert ? GColorYellow : GColorBlack );
     text_layer_set_background_color( s_zoom_eta_layer, alert ? GColorDarkCandyAppleRed : GColorWhite );
 }
+
+static void update_time_stamp()
+{
+	// Update last update timestamp
+    time_t temp = time( NULL );
+    struct tm* tick_time = localtime( &temp );
+
+    // static ensures longevity of buffer
+    static char time_buffer[] = "00:00:00";
+
+    if( clock_is_24h_style() == true )
+    {
+        strftime( time_buffer, sizeof( "00:00:00" ), "%H:%M:%S", tick_time );
+    }
+    else
+    {
+        strftime( time_buffer, sizeof( "00:00:00" ), "%I:%M:%S", tick_time );
+    }
+    
+    static char timestamp_text[32];
+    snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
+    
+    text_layer_set_text( s_bus_display_status, timestamp_text );
+}
+
 
 //==================================================================================================
 //==================================================================================================
@@ -489,7 +515,10 @@ static void bus_display_window_load()
         FONT_KEY_GOTHIC_18_BOLD,
         GTextAlignmentLeft
     );
- 
+
+   common_create_text_layer( &s_bus_display_status, s_bus_display_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
+    text_layer_set_text( s_bus_display_status, "No updates, yet." );
+
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     
     create_bus_text_layers(); 
@@ -499,6 +528,7 @@ static void bus_display_window_unload()
 {
     destroy_bus_text_layers();
     bitmap_layer_destroy( s_bus_display_banner );
+    text_layer_destroy( s_bus_display_status );
     text_layer_destroy( s_bus_display_title );    
 }
 
@@ -551,5 +581,13 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         default:
         // intentionally left blank
         break;
+    }
+}
+
+void bus_display_set_update_status_text( const char* status_text )
+{
+    if( s_bus_display_status )
+    {
+        text_layer_set_text( s_bus_display_status, status_text );
     }
 }

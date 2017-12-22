@@ -22,6 +22,58 @@ static int s_currently_updating = 0;
 static int s_first_update_performed = 0;
 static const int s_first_update_after_n_secs = 2;
 
+
+//==================================================================================================
+//==================================================================================================
+// Helper functions
+
+static void refresh_update_status()
+{
+    static char status_text[ 24 ];
+    status_text[ 0 ] = '\0';
+    
+    int minutes = s_update_age_counter_in_secs / 60;
+    int seconds = s_update_age_counter_in_secs % 60;
+    
+    if( s_currently_updating == 1 )
+    {
+        snprintf( status_text, sizeof( status_text ) , "Updating..." );
+    }
+    else if( s_first_update_performed == 0 )
+    {
+        snprintf( status_text, sizeof( status_text ) , "No updates, yet." );
+    }
+    else if( minutes == 0 )
+    {
+        if( seconds < 30 )
+        {
+	    // This is the normal case (updated <30 s ago), don't show a message
+     status_text[0] = '\0';
+        }
+        else
+        {
+            snprintf( status_text, sizeof( status_text ) , "Updated <1 min ago" );
+        }
+    }
+    else
+    {
+        minutes += ( s_update_age_counter_in_secs > 0 ? 1 : 0 );
+        
+        if( minutes <= 5 )
+        {
+            snprintf( status_text, sizeof( status_text ), "Updated ~%i mins ago", minutes );
+        }
+        else
+        {
+            snprintf( status_text, sizeof( status_text ) , "Updated >5 mins ago" );
+        }
+    }
+    
+    bus_display_set_update_status_text( status_text );
+    bus_stop_selection_set_update_status_text( status_text );
+ }
+
+
 //==================================================================================================
 //==================================================================================================
 // App message handling
@@ -84,6 +136,8 @@ static void send_update_request()
         dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
         
         app_message_outbox_send();
+    
+        refresh_update_status();
     }    
 }
 
@@ -95,7 +149,9 @@ static void send_update_request()
 static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
     ++s_update_age_counter_in_secs;
-    
+
+    refresh_update_status();
+   
     if( s_update_age_counter_in_secs % UPDATE_FREQUENCY_IN_SECS == 0 ||
         ( s_first_update_performed == 0 && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
     {   
