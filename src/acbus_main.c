@@ -18,8 +18,8 @@
 // Variables
 
 static int s_update_age_counter_in_secs = 0;
-static int s_currently_updating = 0;
-static int s_first_update_performed = 0;
+static bool s_currently_updating = false;
+static bool s_first_update_performed = false;
 static const int s_first_update_after_n_secs = 2;
 
 
@@ -30,43 +30,21 @@ static const int s_first_update_after_n_secs = 2;
 static void refresh_update_status()
 {
     static char status_text[ 24 ];
-    status_text[ 0 ] = '\0';
-    
-    int minutes = s_update_age_counter_in_secs / 60;
-    int seconds = s_update_age_counter_in_secs % 60;
-    
-    if( s_currently_updating == 1 )
+    if( s_currently_updating )
     {
-        snprintf( status_text, sizeof( status_text ) , "Updating..." );
+        snprintf( status_text, sizeof( status_text ) , "Updating ..." );
     }
-    else if( s_first_update_performed == 0 )
+    else if( ! s_first_update_performed )
     {
-        snprintf( status_text, sizeof( status_text ) , "No updates, yet." );
-    }
-    else if( minutes == 0 )
-    {
-        if( seconds < 30 )
-        {
-	    // This is the normal case (updated <30 s ago), don't show a message
-     status_text[0] = '\0';
-        }
-        else
-        {
-            snprintf( status_text, sizeof( status_text ) , "Updated <1 min ago" );
-        }
+        snprintf( status_text, sizeof( status_text ) , "No updates yet." );
     }
     else
     {
-        minutes += ( s_update_age_counter_in_secs > 0 ? 1 : 0 );
-        
-        if( minutes <= 5 )
-        {
-            snprintf( status_text, sizeof( status_text ), "Updated ~%i mins ago", minutes );
-        }
-        else
-        {
-            snprintf( status_text, sizeof( status_text ) , "Updated >5 mins ago" );
-        }
+        snprintf( status_text, sizeof( status_text ),
+            "Updated %d:%02d ago",
+            s_update_age_counter_in_secs / 60,
+            s_update_age_counter_in_secs % 60
+        );
     }
     
     bus_display_set_update_status_text( status_text );
@@ -83,7 +61,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
     Tuple* t = dict_read_first( iterator );
-    s_currently_updating = 0;
+    s_currently_updating = false;
    
     while( t != NULL )
     {
@@ -91,7 +69,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
         if( t->key == BUS_STOP_DATA )
         {
             s_update_age_counter_in_secs = 0;
-            s_first_update_performed = 1;
+            s_first_update_performed = true;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -110,7 +88,7 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
-    s_currently_updating = 0;
+    s_currently_updating = false;
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -125,9 +103,9 @@ static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 
 static void send_update_request()
 {
-    if( s_currently_updating == 0 )
+    if( ! s_currently_updating )
     {
-        s_currently_updating = 1;
+        s_currently_updating = true;
     
         DictionaryIterator* iter = NULL;
         app_message_outbox_begin( &iter );
@@ -153,7 +131,7 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
     refresh_update_status();
    
     if( s_update_age_counter_in_secs % UPDATE_FREQUENCY_IN_SECS == 0 ||
-        ( s_first_update_performed == 0 && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
+        ( ! s_first_update_performed && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
     {   
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();

@@ -259,30 +259,6 @@ static void update_bus_text_layers()
     text_layer_set_background_color( s_zoom_eta_layer, alert ? GColorDarkCandyAppleRed : GColorWhite );
 }
 
-static void update_time_stamp()
-{
-	// Update last update timestamp
-    time_t temp = time( NULL );
-    struct tm* tick_time = localtime( &temp );
-
-    // static ensures longevity of buffer
-    static char time_buffer[] = "00:00:00";
-
-    if( clock_is_24h_style() == true )
-    {
-        strftime( time_buffer, sizeof( "00:00:00" ), "%H:%M:%S", tick_time );
-    }
-    else
-    {
-        strftime( time_buffer, sizeof( "00:00:00" ), "%I:%M:%S", tick_time );
-    }
-    
-    static char timestamp_text[32];
-    snprintf( timestamp_text, sizeof( timestamp_text ), "Last update: %s", time_buffer );
-    
-    text_layer_set_text( s_bus_display_status, timestamp_text );
-}
-
 
 //==================================================================================================
 //==================================================================================================
@@ -516,8 +492,15 @@ static void bus_display_window_load()
         GTextAlignmentLeft
     );
 
-   common_create_text_layer( &s_bus_display_status, s_bus_display_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
-    text_layer_set_text( s_bus_display_status, "No updates, yet." );
+   common_create_text_layer(
+        &s_bus_display_status,
+        s_bus_display_wnd,
+        GRect( 24, 0, 120, 20 ),
+        GColorDarkCandyAppleRed,
+        GColorWhite,
+        FONT_KEY_GOTHIC_18,
+        GTextAlignmentCenter
+    );
 
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     

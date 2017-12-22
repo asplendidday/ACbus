@@ -174,8 +174,15 @@ static void bus_stop_selection_create_resources()
     
     common_create_h_icon( &s_bus_stop_sel_banner, s_bus_stop_sel_wnd );
 
-   common_create_text_layer( &s_bus_stop_sel_status, s_bus_stop_sel_wnd, GRect( 0, 148, 144, 20 ), GColorDarkCandyAppleRed, GColorWhite, FONT_KEY_GOTHIC_14, GTextAlignmentCenter );
-    text_layer_set_text( s_bus_stop_sel_status, "No updates, yet." );
+    common_create_text_layer(
+        &s_bus_stop_sel_status,
+        s_bus_stop_sel_wnd,
+        GRect( 24, 0, 120, 20 ),
+        GColorDarkCandyAppleRed,
+        GColorWhite,
+        FONT_KEY_GOTHIC_18,
+        GTextAlignmentCenter
+    );
 
     create_bus_stop_text_layers();    
 }
