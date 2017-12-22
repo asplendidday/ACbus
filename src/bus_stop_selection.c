@@ -113,16 +113,32 @@ static void apply_bus_stop_data()
 
 static void parse_bus_stop_data( const char* bus_stop_data )
 {
-    char id_buffer[ 8 ];
     
     for( int i = 0; i < NUM_BUS_STOPS; ++i )
 	{
 		if( !*bus_stop_data ) break;
 
-		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, BUS_STOP_NAME_SIZE );
-		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].dist_string, BUS_STOP_DIST_SIZE );
-		bus_stop_data = common_read_csv_item( bus_stop_data, id_buffer, sizeof( id_buffer ) );
-		s_bus_stops[ i ].id = atoi( id_buffer );
+        char dist[ BUS_STOP_DIST_SIZE ];
+        char id[ 8 ];
+		bus_stop_data = common_read_csv_item( bus_stop_data, s_bus_stops[ i ].name_string, sizeof( s_bus_stops->name_string ) );
+		bus_stop_data = common_read_csv_item( bus_stop_data, dist, sizeof( dist ) );
+		bus_stop_data = common_read_csv_item( bus_stop_data, id, sizeof( id ) );
+
+        // Convert bus stop ID from string to number
+		s_bus_stops[ i ].id = atoi( id );
+
+        // dist is the distance of the current GPS location to the bus stop, in
+        // string form, in meters. Convert to kilometers with one decimal, in
+        // German notation (decimal comma). Avoid floating-point operations
+        // since they will dramatically increase the executable size on the
+        // Pebble platform.
+        const int m = atoi( dist );
+        snprintf( s_bus_stops[ i ].dist_string,
+            sizeof( s_bus_stops->dist_string ),
+            "%d,%d",
+            m / 1000,
+            (m / 100) % 10
+        );
 	}
     
     apply_bus_stop_data();
