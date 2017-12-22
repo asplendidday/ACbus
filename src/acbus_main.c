@@ -20,7 +20,6 @@
 
 static int s_secs_since_update = 0;
 static int s_secs_before_next_update = 2;
-static bool s_currently_updating = false;
 static bool s_offline = false;
 
 
@@ -59,7 +58,6 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
     Tuple* t = dict_read_first( iterator );
-    s_currently_updating = false;
    
     while( t != NULL )
     {
@@ -86,7 +84,6 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
-    s_currently_updating = false;
 
     // Try again sooner than we would if the update had succeeded
     s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS / 3;
@@ -104,20 +101,15 @@ static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 
 static void send_update_request()
 {
-    if( ! s_currently_updating )
-    {
-        s_currently_updating = true;
+    DictionaryIterator* iter = NULL;
+    app_message_outbox_begin( &iter );
     
-        DictionaryIterator* iter = NULL;
-        app_message_outbox_begin( &iter );
-        
-        dict_write_uint32( iter, REQ_BUS_STOP_ID, common_get_current_bus_stop_id() );
-        dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
-        
-        app_message_outbox_send();
+    dict_write_uint32( iter, REQ_BUS_STOP_ID, common_get_current_bus_stop_id() );
+    dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
     
-        refresh_update_status();
-    }    
+    app_message_outbox_send();
+
+    refresh_update_status();
 }
 
 
