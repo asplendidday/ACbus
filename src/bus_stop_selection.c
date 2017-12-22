@@ -112,8 +112,6 @@ static void apply_bus_stop_data()
 
 static void parse_bus_stop_data( const char* bus_stop_data )
 {
-    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] parse_bus_stop_data: %s", bus_stop_data );
-    
     char id_buffer[ 8 ];
     
     for( int i = 0; i < NUM_BUS_STOPS; ++i )
