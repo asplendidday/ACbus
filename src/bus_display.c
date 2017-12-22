@@ -51,6 +51,7 @@ static int s_current_page = 0;
 static int s_current_bus = 0;
     
 static char s_bus_stop_name[ DEST_BUFFER_SIZE ];
+static int s_bus_stop_dist = 0; // in meters
 static int s_num_buses_transmitted = 0;
     
 static struct {
@@ -253,10 +254,16 @@ static void update_bus_text_layers()
     text_layer_set_text( s_zoom_eta_layer, s_zoom_eta_buf );
     text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
 
-    // Show in alarming color if ETA is < 3 min
-    const bool alert = atoi( s_buses[ idx ].eta_string ) < 3;
-    text_layer_set_text_color( s_zoom_eta_layer, alert ? GColorYellow : GColorBlack );
-    text_layer_set_background_color( s_zoom_eta_layer, alert ? GColorDarkCandyAppleRed : GColorWhite );
+    // Average walking speed is 4 km/h (faster when walking steadily but
+    // slower when crossing streets etc.) That's 1 km in 15 minutes, or
+    // 100 meters in 90 seconds. So, reaching a bus stop that's m meters
+    // away takes (m/100)*1.5 minutes. This, plus one minute since that's
+    // the precision we're working at, is the ETA below which we show the
+    // counter in red. Add 50 for 5/4 rounding.
+    const int limit = 1 + ( ( s_bus_stop_dist + 50 ) / 100 ) * 3 / 2;
+    const bool red = atoi( s_buses[ idx ].eta_string ) <= limit;
+    text_layer_set_text_color( s_zoom_eta_layer, red ? GColorYellow : GColorBlack );
+    text_layer_set_background_color( s_zoom_eta_layer, red ? GColorDarkCandyAppleRed : GColorWhite );
 }
 
 
@@ -274,11 +281,12 @@ static void parse_first_bus_stop( const char* bus_stop_data )
 		bus_stop_data = common_read_csv_item( bus_stop_data, dist, sizeof(dist) );
 		bus_stop_data = common_read_csv_item( bus_stop_data, id, sizeof(id) );
 
-		if (curr<0 || atoi(id)==curr)
-		{
-			text_layer_set_text( s_bus_display_title, s_bus_stop_name );
+        if (curr<0 || atoi(id)==curr)
+        {
+            s_bus_stop_dist = atoi( dist );
+            text_layer_set_text( s_bus_display_title, s_bus_stop_name );
 			break;
-		}
+        }
 	}
 }
 

@@ -131,8 +131,8 @@ static void parse_bus_stop_data( const char* bus_stop_data )
         // string form, in meters. Convert to kilometers with one decimal, in
         // German notation (decimal comma). Avoid floating-point operations
         // since they will dramatically increase the executable size on the
-        // Pebble platform.
-        const int m = atoi( dist );
+        // Pebble platform. Add 50 for 5/4 rounding.
+        const int m = atoi( dist ) + 50;
         snprintf( s_bus_stops[ i ].dist_string,
             sizeof( s_bus_stops->dist_string ),
             "%d,%d",
