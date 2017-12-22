@@ -68,7 +68,7 @@ static struct {
 static bool s_zooming = false;
 
 // Buffers for zoomed text
-static char s_zoom_eta_buf[ ETA_BUFFER_SIZE ];
+static char s_zoom_eta_buf[ 1 + ETA_BUFFER_SIZE ];
 static char s_zoom_line_buf[ LINE_BUFFER_SIZE + DEST_BUFFER_SIZE ];
 
 // Layers for zoomed text
@@ -112,9 +112,9 @@ static void create_bus_text_layers()
         s_bus_display_wnd,
         GRect(
             BUS_ENTRY_MARGIN_LEFT,
-            BUS_ENTRY_MARGIN_TOP + 2 * BUS_ENTRY_HEIGHT,
+            BUS_ENTRY_MARGIN_TOP,
             BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH + BUS_ENTRY_ETA_WIDTH,
-            BUS_ENTRY_HEIGHT * ( NUM_BUSES_PER_PAGE - 2 )
+            BUS_ENTRY_HEIGHT * ( NUM_BUSES_PER_PAGE - 1 )
         ),
         GColorWhite,
         GColorBlack,
@@ -243,13 +243,19 @@ static void update_bus_text_layers()
     // Make texts for zoom mode
     const int idx = s_current_bus + NUM_BUSES_PER_PAGE * s_current_page;
 
-    strcpy( s_zoom_eta_buf, s_buses[ idx ].eta_string);
+    s_zoom_eta_buf[ 0 ] = '\n';
+    strcpy( s_zoom_eta_buf + 1, s_buses[ idx ].eta_string);
     strcpy( s_zoom_line_buf, s_buses[ idx ].line_string);
     strcat( s_zoom_line_buf, " ");
     strcat( s_zoom_line_buf, s_buses[ idx ].dest_string);
 
     text_layer_set_text( s_zoom_eta_layer, s_zoom_eta_buf );
     text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
+
+    // Show in alarming color if ETA is < 3 min
+    const bool alert = atoi( s_buses[ idx ].eta_string ) < 3;
+    text_layer_set_text_color( s_zoom_eta_layer, alert ? GColorYellow : GColorBlack );
+    text_layer_set_background_color( s_zoom_eta_layer, alert ? GColorDarkCandyAppleRed : GColorWhite );
 }
 
 //==================================================================================================
