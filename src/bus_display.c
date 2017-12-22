@@ -67,8 +67,13 @@ static struct {
 // false=bus list, true=zoom current bus
 static bool s_zooming = false;
 
-// Layer for zoomed text
-static TextLayer* s_zoom_layer = NULL;
+// Buffers for zoomed text
+static char s_zoom_eta_buf[ ETA_BUFFER_SIZE ];
+static char s_zoom_line_buf[ LINE_BUFFER_SIZE + DEST_BUFFER_SIZE ];
+
+// Layers for zoomed text
+static TextLayer* s_zoom_eta_layer = NULL;
+static TextLayer* s_zoom_line_layer = NULL;
 
 
 //==================================================================================================
@@ -101,9 +106,9 @@ static GRect eta_rect( int index )
 
 static void create_bus_text_layers()
 {    
-    // The zoom layer is initially hidden
+    // The zoom layers are initially hidden
     common_create_text_layer(
-        &s_zoom_layer,
+        &s_zoom_eta_layer,
         s_bus_display_wnd,
         GRect(
             BUS_ENTRY_MARGIN_LEFT,
@@ -116,7 +121,22 @@ static void create_bus_text_layers()
         FONT_KEY_ROBOTO_BOLD_SUBSET_49,
         GTextAlignmentCenter
     );
-    layer_set_hidden( (Layer*) s_zoom_layer, true );
+    common_create_text_layer(
+        &s_zoom_line_layer,
+        s_bus_display_wnd,
+        GRect(
+            BUS_ENTRY_MARGIN_LEFT,
+            BUS_ENTRY_MARGIN_TOP + ( NUM_BUSES_PER_PAGE - 1 ) * BUS_ENTRY_HEIGHT,
+            BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH + BUS_ENTRY_ETA_WIDTH,
+            BUS_ENTRY_HEIGHT
+        ),
+        GColorWhite,
+        GColorBlack,
+        FONT_KEY_GOTHIC_18,
+        GTextAlignmentCenter
+    );
+    layer_set_hidden( (Layer*) s_zoom_eta_layer, true );
+    layer_set_hidden( (Layer*) s_zoom_line_layer, true );
 
     // Create the bus list layers (three per line)
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
@@ -153,7 +173,8 @@ static void create_bus_text_layers()
 
 static void destroy_bus_text_layers()
 {
-    text_layer_destroy( s_zoom_layer );
+    text_layer_destroy( s_zoom_eta_layer );
+    text_layer_destroy( s_zoom_line_layer );
 
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
@@ -219,9 +240,16 @@ static void update_bus_text_layers()
             s_buses[ bus_index ].eta_string );
     }
 
-    // Make the zoom layer text
+    // Make texts for zoom mode
     const int idx = s_current_bus + NUM_BUSES_PER_PAGE * s_current_page;
-    text_layer_set_text( s_zoom_layer, s_buses[ idx ].eta_string );
+
+    strcpy( s_zoom_eta_buf, s_buses[ idx ].eta_string);
+    strcpy( s_zoom_line_buf, s_buses[ idx ].line_string);
+    strcat( s_zoom_line_buf, " ");
+    strcat( s_zoom_line_buf, s_buses[ idx ].dest_string);
+
+    text_layer_set_text( s_zoom_eta_layer, s_zoom_eta_buf );
+    text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
 }
 
 //==================================================================================================
@@ -405,7 +433,8 @@ static void bus_display_select( ClickRecognizerRef recognizer, void* context )
     s_zooming = ! s_zooming;
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Display mode switched to %s", s_zooming ? "zoom" : "list" );
 
-    layer_set_hidden( (Layer*) s_zoom_layer, ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_eta_layer, ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_line_layer, ! s_zooming );
 
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
