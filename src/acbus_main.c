@@ -7,6 +7,7 @@
 //==================================================================================================
 // Definitions
 
+// Seconds after a successful update before we trigger the next update
 #define UPDATE_FREQUENCY_IN_SECS    30
 
 // 1 to reload bus data when shaking the watch.
@@ -17,11 +18,10 @@
 //==================================================================================================
 // Variables
 
-static int s_update_age_counter_in_secs = 0;
+static int s_secs_since_update = 0;
+static int s_secs_before_next_update = 2;
 static bool s_currently_updating = false;
-static bool s_first_update_performed = false;
 static bool s_offline = false;
-static const int s_first_update_after_n_secs = 2;
 
 
 //==================================================================================================
@@ -35,7 +35,7 @@ static void refresh_update_status()
     // We update every 30 seconds. Allow 15 seconds for the update, so
     // declare ourselves offline when 45 seconds have passed since the
     // last update succeeded.
-    const bool offline = s_update_age_counter_in_secs > 45;
+    const bool offline = s_secs_since_update > UPDATE_FREQUENCY_IN_SECS * 3 / 2;
 
     if ( offline != s_offline )
     {
@@ -66,8 +66,8 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
         // if bus stop data is in the message, it is a success
         if( t->key == BUS_STOP_DATA )
         {
-            s_update_age_counter_in_secs = 0;
-            s_first_update_performed = true;
+            s_secs_since_update = 0;
+            s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -87,6 +87,9 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
     s_currently_updating = false;
+
+    // Try again sooner than we would if the update had succeeded
+    s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS / 3;
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -124,13 +127,15 @@ static void send_update_request()
 
 static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
-    ++s_update_age_counter_in_secs;
+    // NOTE: This function is called once per second so keep it quick
+
+    ++s_secs_since_update;
 
     refresh_update_status();
    
-    if( s_update_age_counter_in_secs % UPDATE_FREQUENCY_IN_SECS == 0 ||
-        ( ! s_first_update_performed && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
+    if (--s_secs_before_next_update <= 0 )
     {   
+        s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS;
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();
     }
