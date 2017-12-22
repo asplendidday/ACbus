@@ -497,10 +497,11 @@ static void bus_display_window_load()
         s_bus_display_wnd,
         GRect( 24, 0, 120, 20 ),
         GColorDarkCandyAppleRed,
-        GColorWhite,
+        GColorYellow,
         FONT_KEY_GOTHIC_18,
         GTextAlignmentCenter
     );
+    layer_set_hidden( (Layer*)s_bus_display_status, true );
 
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     
@@ -567,10 +568,22 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
     }
 }
 
+/*
+ * status_text==NULL if we are online, else offline message.
+ */
 void bus_display_set_update_status_text( const char* status_text )
 {
-    if( s_bus_display_status )
+    if( ! s_bus_display_status ) return;
+
+    if ( status_text )
     {
+        // We are offline, display message
         text_layer_set_text( s_bus_display_status, status_text );
+        layer_set_hidden( (Layer*)s_bus_display_status, false );
+    }
+    else
+    {
+        // We are online, hide message
+        layer_set_hidden( (Layer*)s_bus_display_status, true );
     }
 }

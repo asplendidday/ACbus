@@ -150,7 +150,6 @@ static void bus_stop_selection_select( ClickRecognizerRef recognizer, void* cont
     bus_display_show();
 }
 
-
 static void bus_stop_selection_click_provider( Window* window )
 {
     const int ms = 200;     // Auto repeat time in milliseconds
@@ -179,10 +178,11 @@ static void bus_stop_selection_create_resources()
         s_bus_stop_sel_wnd,
         GRect( 24, 0, 120, 20 ),
         GColorDarkCandyAppleRed,
-        GColorWhite,
+        GColorYellow,
         FONT_KEY_GOTHIC_18,
         GTextAlignmentCenter
     );
+    layer_set_hidden( (Layer*)s_bus_stop_sel_status, true );
 
     create_bus_stop_text_layers();    
 }
@@ -255,10 +255,22 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
     }
 }
 
+/*
+ * status_text==NULL if we are online, else offline message.
+ */
 void bus_stop_selection_set_update_status_text( const char* status_text )
 {
-    if( s_bus_stop_sel_status )
+    if( ! s_bus_stop_sel_status ) return;
+
+    if ( status_text )
     {
+        // We are offline, display message
         text_layer_set_text( s_bus_stop_sel_status, status_text );
+        layer_set_hidden( (Layer*)s_bus_stop_sel_status, false );
+    }
+    else
+    {
+        // We are online, hide message
+        layer_set_hidden( (Layer*)s_bus_stop_sel_status, true );
     }
 }

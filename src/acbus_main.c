@@ -20,6 +20,7 @@
 static int s_update_age_counter_in_secs = 0;
 static bool s_currently_updating = false;
 static bool s_first_update_performed = false;
+static bool s_offline = false;
 static const int s_first_update_after_n_secs = 2;
 
 
@@ -29,26 +30,23 @@ static const int s_first_update_after_n_secs = 2;
 
 static void refresh_update_status()
 {
-    static char status_text[ 24 ];
-    if( s_currently_updating )
+    // NOTE: This function is called once per second so keep it fast
+
+    // We update every 30 seconds. Allow 15 seconds for the update, so
+    // declare ourselves offline when 45 seconds have passed since the
+    // last update succeeded.
+    const bool offline = s_update_age_counter_in_secs > 45;
+
+    if ( offline != s_offline )
     {
-        snprintf( status_text, sizeof( status_text ) , "Updating ..." );
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Connection status is now o%sline", offline ? "ff" : "n" );
+
+        s_offline = offline;
+
+        const char *const msg = offline ? "O F F L I N E" : NULL;
+        bus_display_set_update_status_text( msg );
+        bus_stop_selection_set_update_status_text( msg );
     }
-    else if( ! s_first_update_performed )
-    {
-        snprintf( status_text, sizeof( status_text ) , "No updates yet." );
-    }
-    else
-    {
-        snprintf( status_text, sizeof( status_text ),
-            "Updated %d:%02d ago",
-            s_update_age_counter_in_secs / 60,
-            s_update_age_counter_in_secs % 60
-        );
-    }
-    
-    bus_display_set_update_status_text( status_text );
-    bus_stop_selection_set_update_status_text( status_text );
  }
 
 
