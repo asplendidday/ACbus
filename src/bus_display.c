@@ -266,6 +266,22 @@ static void update_bus_text_layers()
     text_layer_set_background_color( s_zoom_eta_layer, red ? GColorDarkCandyAppleRed : GColorWhite );
 }
 
+static void switch_zoom_mode( bool zoom )
+{
+    s_zooming = zoom;
+    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Display mode switched to %s", s_zooming ? "zoom" : "list" );
+
+    layer_set_hidden( (Layer*) s_zoom_eta_layer, ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_line_layer, ! s_zooming );
+
+    for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
+    {
+        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].line, s_zooming );
+        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].dest, s_zooming );
+        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].eta,  s_zooming );
+    }
+}
+
 
 //==================================================================================================
 //==================================================================================================
@@ -353,10 +369,16 @@ static void parse_bus_data( const char* bus_data )
             bus_data = common_read_csv_item( bus_data, etaS, ETA_BUFFER_SIZE );
 
             // Check best match for cursor position
-            if ( ! strcmp( line, cur_line ) && ! strcmp( dest, cur_dest ) )
+            if ( ! strcmp( dest, cur_dest ) )
             {
-                // It's the same bus (same line and destination), check ETA
-                const int delta = abs( cur_eta - atoi( etaS ) );
+                // It's the same destination, check ETA and add a penalty if
+                // it's not the same line (so that, if there is no bus with
+                // the same line and destination, we'll pick the bus with the
+                // same destination and different line, if there is one).
+                // Note that ETA is always < 100.
+                const int delta
+                    = abs( cur_eta - atoi( etaS ) )
+                    + strcmp( line, cur_line ) ? 100 : 0;
                 if ( best_idx < 0 || delta < best_delta )
                 {
                     // Found a new best match
@@ -371,8 +393,8 @@ static void parse_bus_data( const char* bus_data )
             if ( i==0 )
             {
                 // ... without finding anything
-                strcpy( s_buses->dest_string,"Keine Fahrt");
-                s_zooming = false;
+                strcpy( s_buses->dest_string, "Keine Fahrt" );
+                switch_zoom_mode(false);
             }
             break;
         }
@@ -381,8 +403,11 @@ static void parse_bus_data( const char* bus_data )
     // Reconstruct cursor position
     if( best_idx < 0 )
     {
-        // No match found, reset to beginning
+        // No match found, reset to beginning, but disable zoom mode
+        // because the bus we've been zooming into is obviously no
+        // longer available
         s_current_page = s_current_bus = 0;
+        switch_zoom_mode(false);
     }
     else
     {
@@ -444,20 +469,7 @@ static void bus_display_down( ClickRecognizerRef recognizer, void* context )
 static void bus_display_select( ClickRecognizerRef recognizer, void* context )
 {
     // No zoom mode if there is nothing to zoom in on
-    if( s_num_buses_transmitted == 0 ) return;
-
-    s_zooming = ! s_zooming;
-    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Display mode switched to %s", s_zooming ? "zoom" : "list" );
-
-    layer_set_hidden( (Layer*) s_zoom_eta_layer, ! s_zooming );
-    layer_set_hidden( (Layer*) s_zoom_line_layer, ! s_zooming );
-
-    for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
-    {
-        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].line, s_zooming );
-        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].dest, s_zooming );
-        layer_set_hidden( (Layer*) s_bus_display_lines[ i ].eta,  s_zooming );
-    }
+    switch_zoom_mode( s_num_buses_transmitted ? false : ! s_zooming );
 }
 
 static void bus_display_back( ClickRecognizerRef recognizer, void* context )
