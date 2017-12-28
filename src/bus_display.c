@@ -469,7 +469,7 @@ static void bus_display_down( ClickRecognizerRef recognizer, void* context )
 static void bus_display_select( ClickRecognizerRef recognizer, void* context )
 {
     // No zoom mode if there is nothing to zoom in on
-    switch_zoom_mode( s_num_buses_transmitted ? false : ! s_zooming );
+    switch_zoom_mode( s_num_buses_transmitted==0 ? false : ! s_zooming );
 }
 
 static void bus_display_back( ClickRecognizerRef recognizer, void* context )
