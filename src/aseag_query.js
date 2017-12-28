@@ -164,18 +164,23 @@ function compileListOfNextBuses( buses, num_next_buses ) {
     var max_buses = Math.min( num_next_buses, buses.length );
     var num_buses = 0;
     var bus_data = "";
+    var prev_bus = "";
 
     for( var j = 0; j < max_buses; ++j ) {
         var eta = Math.round( buses[ j ].eta / ( 1000 * 60 ) );
         if (eta > 99) break;
 
+        var this_bus = buses[ j ].number + ';' + buses[ j ].dest + ';' + eta;
+
+        // Sometimes the same bus appears twice in the input
+        if( this_bus == prev_bus ) continue;
+
+        bus_data += this_bus;
         ++num_buses;
-        bus_data += buses[ j ].number + ';' +
-                    buses[ j ].dest + ';' +
-                    eta;
         if( j + 1 < max_buses ) {
             bus_data += ";";
         }
+        prev_bus = this_bus;
     }
     
     bus_data = num_buses + ';' + bus_data;
