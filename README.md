@@ -2,9 +2,9 @@
 
 Pebble app to retrieve ASEAG bus schedules. (ASEAG is the local bus service in Aachen, Germany.)
 
-![Pebble Time mockup](mockup1.jpg)
-![Pebble Time Steel mockup](mockup2.jpg)
-![Pebble Time mockup](mockup3.jpg)
+![Photo of bus stop list](photo.jpg)
+![Emu screenshot with bus list](mockup2.jpg)
+![Emu screenshot in zoom mode](mockup3.jpg)
 
 The original is here: https://github.com/asplendidday/ACbus
 
