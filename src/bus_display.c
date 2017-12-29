@@ -515,10 +515,10 @@ static void bus_display_window_load()
    common_create_text_layer(
         &s_bus_display_status,
         s_bus_display_wnd,
-        GRect( 24, 0, 120, 20 ),
-        GColorDarkCandyAppleRed,
+        GRect( 24, 0, 120, BUS_ENTRY_MARGIN_TOP - 2),
         GColorYellow,
-        FONT_KEY_GOTHIC_18,
+        GColorDarkCandyAppleRed,
+        FONT_KEY_GOTHIC_18_BOLD,
         GTextAlignmentCenter
     );
     layer_set_hidden( (Layer*)s_bus_display_status, true );

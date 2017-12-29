@@ -192,10 +192,10 @@ static void bus_stop_selection_create_resources()
     common_create_text_layer(
         &s_bus_stop_sel_status,
         s_bus_stop_sel_wnd,
-        GRect( 24, 0, 120, 20 ),
-        GColorDarkCandyAppleRed,
+        GRect( 24, 0, 120, BUS_STOP_MARGIN_TOP - 2),
         GColorYellow,
-        FONT_KEY_GOTHIC_18,
+        GColorDarkCandyAppleRed,
+        FONT_KEY_GOTHIC_18_BOLD,
         GTextAlignmentCenter
     );
     layer_set_hidden( (Layer*)s_bus_stop_sel_status, true );
