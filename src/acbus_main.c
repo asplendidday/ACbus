@@ -8,7 +8,7 @@
 // Definitions
 
 // Seconds after a successful update before we trigger the next update
-#define UPDATE_FREQUENCY_IN_SECS    30
+#define UPDATE_EVERY_SECS    20
 
 // 1 to reload bus data when shaking the watch.
 // 0 to conserve battery.
@@ -31,10 +31,9 @@ static void refresh_update_status()
 {
     // NOTE: This function is called once per second so keep it fast
 
-    // We update every 30 seconds. Allow 15 seconds for the update, so
-    // declare ourselves offline when 45 seconds have passed since the
-    // last update succeeded.
-    const bool offline = s_secs_since_update > UPDATE_FREQUENCY_IN_SECS * 3 / 2;
+    // Allow half the update frequency for the actual update before
+    // declaring ourselves offline.
+    const bool offline = s_secs_since_update > UPDATE_EVERY_SECS * 3 / 2;
 
     if ( offline != s_offline )
     {
@@ -65,7 +64,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
         if( t->key == BUS_STOP_DATA )
         {
             s_secs_since_update = 0;
-            s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS;
+            s_secs_before_next_update = UPDATE_EVERY_SECS;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -86,7 +85,7 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
              common_app_message_result_to_string( reason ) );
 
     // Try again sooner than we would if the update had succeeded
-    s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS / 3;
+    s_secs_before_next_update = UPDATE_EVERY_SECS / 3;
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -127,7 +126,7 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
    
     if (--s_secs_before_next_update <= 0 )
     {   
-        s_secs_before_next_update = UPDATE_FREQUENCY_IN_SECS;
+        s_secs_before_next_update = UPDATE_EVERY_SECS;
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();
     }
