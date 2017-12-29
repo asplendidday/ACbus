@@ -23,7 +23,7 @@
 
 static Window* s_bus_stop_sel_wnd = NULL;
 static TextLayer* s_bus_stop_sel_title = NULL;
-static TextLayer* s_bus_stop_sel_status = NULL;
+static TextLayer* s_bus_stop_sel_offline = NULL;
 static BitmapLayer* s_bus_stop_sel_banner = NULL;
 
 static struct {
@@ -190,7 +190,7 @@ static void bus_stop_selection_create_resources()
     common_create_h_icon( &s_bus_stop_sel_banner, s_bus_stop_sel_wnd );
 
     common_create_text_layer(
-        &s_bus_stop_sel_status,
+        &s_bus_stop_sel_offline,
         s_bus_stop_sel_wnd,
         GRect( 24, 0, 120, BUS_STOP_MARGIN_TOP - 2),
         GColorYellow,
@@ -198,7 +198,8 @@ static void bus_stop_selection_create_resources()
         FONT_KEY_GOTHIC_18_BOLD,
         GTextAlignmentCenter
     );
-    layer_set_hidden( (Layer*)s_bus_stop_sel_status, true );
+    layer_set_hidden( (Layer*)s_bus_stop_sel_offline, true );
+    text_layer_set_text( s_bus_stop_sel_offline, "O F F L I N E" );
 
     create_bus_stop_text_layers();    
 }
@@ -206,7 +207,7 @@ static void bus_stop_selection_create_resources()
 static void bus_stop_selection_destroy_resources()
 {   
     destroy_bus_stop_text_layers();
-    text_layer_destroy( s_bus_stop_sel_status );
+    text_layer_destroy( s_bus_stop_sel_offline );
     bitmap_layer_destroy( s_bus_stop_sel_banner );
     text_layer_destroy( s_bus_stop_sel_title );   
 }
@@ -274,19 +275,10 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
 /*
  * status_text==NULL if we are online, else offline message.
  */
-void bus_stop_selection_set_update_status_text( const char* status_text )
+void bus_stop_selection_set_update_status( bool offline )
 {
-    if( ! s_bus_stop_sel_status ) return;
-
-    if ( status_text )
+    if( s_bus_stop_sel_offline )
     {
-        // We are offline, display message
-        text_layer_set_text( s_bus_stop_sel_status, status_text );
-        layer_set_hidden( (Layer*)s_bus_stop_sel_status, false );
-    }
-    else
-    {
-        // We are online, hide message
-        layer_set_hidden( (Layer*)s_bus_stop_sel_status, true );
+        layer_set_hidden( (Layer*)s_bus_stop_sel_offline, ! offline );
     }
 }

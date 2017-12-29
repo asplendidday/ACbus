@@ -40,10 +40,8 @@ static void refresh_update_status()
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Connection status is now o%sline", offline ? "ff" : "n" );
 
         s_offline = offline;
-
-        const char *const msg = offline ? "O F F L I N E" : NULL;
-        bus_display_set_update_status_text( msg );
-        bus_stop_selection_set_update_status_text( msg );
+        bus_display_set_update_status( offline );
+        bus_stop_selection_set_update_status( offline );
     }
  }
 

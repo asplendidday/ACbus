@@ -9,4 +9,4 @@ void bus_stop_selection_show();
 
 void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple );
 
-void bus_stop_selection_set_update_status_text( const char* status_text );
+void bus_stop_selection_set_update_status( bool offline );

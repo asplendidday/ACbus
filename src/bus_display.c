@@ -28,7 +28,7 @@
 
 static Window* s_bus_display_wnd = NULL;
 static TextLayer* s_bus_display_title = NULL;
-static TextLayer* s_bus_display_status = NULL;
+static TextLayer* s_bus_display_offline = NULL;
 static BitmapLayer* s_bus_display_banner = NULL;
 static const uint8_t s_line_colors[] = {
     // https://developer.pebble.com/guides/tools-and-resources/color-picker/
@@ -513,7 +513,7 @@ static void bus_display_window_load()
     );
 
    common_create_text_layer(
-        &s_bus_display_status,
+        &s_bus_display_offline,
         s_bus_display_wnd,
         GRect( 24, 0, 120, BUS_ENTRY_MARGIN_TOP - 2),
         GColorYellow,
@@ -521,7 +521,8 @@ static void bus_display_window_load()
         FONT_KEY_GOTHIC_18_BOLD,
         GTextAlignmentCenter
     );
-    layer_set_hidden( (Layer*)s_bus_display_status, true );
+    layer_set_hidden( (Layer*)s_bus_display_offline, true );
+    text_layer_set_text( s_bus_display_offline, "O F F L I N E" );
 
     common_create_h_icon( &s_bus_display_banner, s_bus_display_wnd );
     
@@ -532,7 +533,7 @@ static void bus_display_window_unload()
 {
     destroy_bus_text_layers();
     bitmap_layer_destroy( s_bus_display_banner );
-    text_layer_destroy( s_bus_display_status );
+    text_layer_destroy( s_bus_display_offline );
     text_layer_destroy( s_bus_display_title );    
 }
 
@@ -591,19 +592,10 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 /*
  * status_text==NULL if we are online, else offline message.
  */
-void bus_display_set_update_status_text( const char* status_text )
+void bus_display_set_update_status( bool offline )
 {
-    if( ! s_bus_display_status ) return;
-
-    if ( status_text )
+    if( s_bus_display_offline )
     {
-        // We are offline, display message
-        text_layer_set_text( s_bus_display_status, status_text );
-        layer_set_hidden( (Layer*)s_bus_display_status, false );
-    }
-    else
-    {
-        // We are online, hide message
-        layer_set_hidden( (Layer*)s_bus_display_status, true );
+        layer_set_hidden( (Layer*)s_bus_display_offline, ! offline );
     }
 }
