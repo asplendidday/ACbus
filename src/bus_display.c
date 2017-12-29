@@ -69,11 +69,11 @@ static struct {
 // false=bus list, true=zoom current bus
 static bool s_zooming = false;
 
-// Buffers for zoomed text
-static char s_zoom_eta_buf[ 1 + ETA_BUFFER_SIZE ];
+// Buffer for zoomed text
 static char s_zoom_line_buf[ LINE_BUFFER_SIZE + DEST_BUFFER_SIZE ];
 
 // Layers for zoomed text
+static TextLayer* s_zoom_background_layer = NULL;
 static TextLayer* s_zoom_eta_layer = NULL;
 static TextLayer* s_zoom_line_layer = NULL;
 
@@ -109,14 +109,30 @@ static GRect eta_rect( int index )
 static void create_bus_text_layers()
 {    
     // The zoom layers are initially hidden
+    const int w = BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH + BUS_ENTRY_ETA_WIDTH;
+    const int h = BUS_ENTRY_HEIGHT * ( NUM_BUSES_PER_PAGE - 1 );
+    common_create_text_layer(
+        &s_zoom_background_layer,
+        s_bus_display_wnd,
+        GRect(
+            BUS_ENTRY_MARGIN_LEFT,
+            BUS_ENTRY_MARGIN_TOP,
+            w,
+            h
+        ),
+        GColorWhite,
+        GColorBlack,
+        FONT_KEY_ROBOTO_BOLD_SUBSET_49,
+        GTextAlignmentCenter
+    );
     common_create_text_layer(
         &s_zoom_eta_layer,
         s_bus_display_wnd,
         GRect(
             BUS_ENTRY_MARGIN_LEFT,
-            BUS_ENTRY_MARGIN_TOP,
-            BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH + BUS_ENTRY_ETA_WIDTH,
-            BUS_ENTRY_HEIGHT * ( NUM_BUSES_PER_PAGE - 1 )
+            BUS_ENTRY_MARGIN_TOP + h / 4,
+            w,
+            h / 2
         ),
         GColorWhite,
         GColorBlack,
@@ -129,7 +145,7 @@ static void create_bus_text_layers()
         GRect(
             BUS_ENTRY_MARGIN_LEFT,
             BUS_ENTRY_MARGIN_TOP + ( NUM_BUSES_PER_PAGE - 1 ) * BUS_ENTRY_HEIGHT,
-            BUS_ENTRY_LINE_WIDTH + BUS_ENTRY_DEST_WIDTH + BUS_ENTRY_ETA_WIDTH,
+            w,
             BUS_ENTRY_HEIGHT
         ),
         GColorWhite,
@@ -137,6 +153,7 @@ static void create_bus_text_layers()
         FONT_KEY_GOTHIC_18,
         GTextAlignmentCenter
     );
+    layer_set_hidden( (Layer*) s_zoom_background_layer, true );
     layer_set_hidden( (Layer*) s_zoom_eta_layer, true );
     layer_set_hidden( (Layer*) s_zoom_line_layer, true );
 
@@ -175,6 +192,7 @@ static void create_bus_text_layers()
 
 static void destroy_bus_text_layers()
 {
+    text_layer_destroy( s_zoom_background_layer );
     text_layer_destroy( s_zoom_eta_layer );
     text_layer_destroy( s_zoom_line_layer );
 
@@ -244,14 +262,10 @@ static void update_bus_text_layers()
 
     // Make texts for zoom mode
     const int idx = s_current_bus + NUM_BUSES_PER_PAGE * s_current_page;
-
-    s_zoom_eta_buf[ 0 ] = '\n';
-    strcpy( s_zoom_eta_buf + 1, s_buses[ idx ].eta_string);
     strcpy( s_zoom_line_buf, s_buses[ idx ].line_string);
     strcat( s_zoom_line_buf, " ");
     strcat( s_zoom_line_buf, s_buses[ idx ].dest_string);
-
-    text_layer_set_text( s_zoom_eta_layer, s_zoom_eta_buf );
+    text_layer_set_text( s_zoom_eta_layer, s_buses[ idx ].eta_string );
     text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
 
     // Average walking speed is 4 km/h (faster when walking steadily but
@@ -262,8 +276,10 @@ static void update_bus_text_layers()
     // counter in red. Add 50 for 5/4 rounding.
     const int limit = 1 + ( ( s_bus_stop_dist + 50 ) / 100 ) * 3 / 2;
     const bool red = atoi( s_buses[ idx ].eta_string ) <= limit;
-    text_layer_set_text_color( s_zoom_eta_layer, red ? GColorYellow : GColorBlack );
-    text_layer_set_background_color( s_zoom_eta_layer, red ? GColorDarkCandyAppleRed : GColorWhite );
+    text_layer_set_text_color( s_zoom_background_layer,         red ? GColorYellow : GColorBlack );
+    text_layer_set_text_color( s_zoom_eta_layer,                red ? GColorYellow : GColorBlack );
+    text_layer_set_background_color( s_zoom_background_layer,   red ? GColorDarkCandyAppleRed : GColorWhite );
+    text_layer_set_background_color( s_zoom_eta_layer,          red ? GColorDarkCandyAppleRed : GColorWhite );
 }
 
 static void switch_zoom_mode( bool zoom )
@@ -271,8 +287,9 @@ static void switch_zoom_mode( bool zoom )
     s_zooming = zoom;
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Display mode switched to %s", s_zooming ? "zoom" : "list" );
 
-    layer_set_hidden( (Layer*) s_zoom_eta_layer, ! s_zooming );
-    layer_set_hidden( (Layer*) s_zoom_line_layer, ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_background_layer, ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_eta_layer,        ! s_zooming );
+    layer_set_hidden( (Layer*) s_zoom_line_layer,       ! s_zooming );
 
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
