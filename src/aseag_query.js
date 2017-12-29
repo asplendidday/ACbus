@@ -155,35 +155,41 @@ function parseBuses( response_text ) {
     return buses;
 }
 
-function compileListOfNextBuses( buses, num_next_buses ) {
+function compileListOfNextBuses( buses ) {
+
     // order list with respect to estimated time of arrival
     buses.sort( function( lhs, rhs ) {
         return lhs.eta - rhs.eta;
     } );
     
-    var max_buses = Math.min( num_next_buses, buses.length );
     var num_buses = 0;
     var bus_data = "";
     var prev_bus = "";
 
-    for( var j = 0; j < max_buses; ++j ) {
+    for( var j = 0; j < buses.length; ++j ) {
+
+        // Compute minutes until the bus arrives
         var eta = Math.round( buses[ j ].eta / ( 1000 * 60 ) );
+
+        // We can display only two digits of ETA, and who wants to wait
+        // for more than 99 minutes?
         if (eta > 99) break;
 
+        // Make result line for this bus
         var this_bus = buses[ j ].number + ';' + buses[ j ].dest + ';' + eta;
 
         // Sometimes the same bus appears twice in the input
         if( this_bus == prev_bus ) continue;
 
-        bus_data += this_bus;
-        ++num_buses;
-        if( j + 1 < max_buses ) {
-            bus_data += ";";
-        }
+        // Append this bus to the result
+        bus_data += ';' + this_bus;
         prev_bus = this_bus;
+
+        // Count buses and stop when we have enough (3 pages à 7 buses)
+        if ( ++num_buses >= 21 ) break;
     }
     
-    bus_data = num_buses + ';' + bus_data;
+    bus_data = num_buses + bus_data;
     
     console.log( '[ACbus] Compiled list of next ' + num_buses + ' buses: ' + bus_data ); 
     return bus_data;
@@ -236,7 +242,7 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
             console.log( '[ACbus] Getting next buses for ' + selected_bus_stop_name + '.' );
 
             var buses = parseBuses( response_text );
-            var bus_data = compileListOfNextBuses( buses, 21 );            
+            var bus_data = compileListOfNextBuses( buses );
             
             sendUpdate( bus_stop_data, bus_data );
         } );
