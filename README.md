@@ -16,7 +16,8 @@ I implemented the following changes:
 * Can now select a bus with the up/down buttons.
 * Pressing Select in the bus list displays the number of minutes until this bus arrives full-screen ("zoom mode").
 * Zoom mode has red background if bus stop is too far away to reach before the bus arrives.
-* Don't display time since last update all the time. Instead, show a message only if there was no update for >45 seconds.
+* Reload bus data from the ASEAG server every 20 seconds instead of 30.
+* Don't display time since last update all the time. Instead, show a message if there was no update for >30 seconds.
 * Change all messages to German.
 * Several fixes and optimizations (details in git log).
 
