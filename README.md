@@ -1,6 +1,6 @@
 # ACbus
 
-Pebble app to retrieve ASEAG bus schedules. (ASEAG is the local bus service in Aachen, Germany.)
+App for the Pebble smartwatch to retrieve ASEAG bus schedules. (ASEAG is the local bus service in Aachen, Germany.)
 
 ![Photo of bus stop list](photo.jpg)
 ![Emu screenshot with bus list](mockup1.jpg)
@@ -20,6 +20,8 @@ I implemented the following changes:
 * Don't display time since last update all the time. Instead, show a message if there was no update for >30 seconds.
 * Change all messages to German.
 * Several fixes and optimizations (details in git log).
+
+To install it on your Pebble, open the pbw file in the Pebble app on your phone, or (after intalling the Pebble SDK on your computer) build it from source and use the `pebble install` command.
 
 ---
 *Wolfram Rösler • wolfram@roesler-ac.de • https://github.com/wolframroesler • https://twitter.com/wolframroesler • https://www.linkedin.com/in/wolframroesler/*
