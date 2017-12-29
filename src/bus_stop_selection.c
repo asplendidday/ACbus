@@ -10,8 +10,8 @@
 #define BUS_STOP_MARGIN_TOP      27
 #define BUS_STOP_MARGIN_LEFT      3
 #define BUS_STOP_HEIGHT          23
-#define BUS_STOP_NAME_WIDTH     100
-#define BUS_STOP_DIST_WIDTH      38
+#define BUS_STOP_NAME_WIDTH     118
+#define BUS_STOP_DIST_WIDTH      20
 
 #define BUS_STOP_NAME_SIZE       32
 #define BUS_STOP_DIST_SIZE        8
