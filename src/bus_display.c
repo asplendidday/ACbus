@@ -60,11 +60,14 @@ static struct {
     TextLayer* eta;
 } s_bus_display_lines[ NUM_BUSES_PER_PAGE ];
     
-static struct {
+static struct Bus {
     char line_string[ LINE_BUFFER_SIZE ];
     char dest_string[ DEST_BUFFER_SIZE ];
     char eta_string[ ETA_BUFFER_SIZE ];
 } s_buses[ NUM_BUSES ];
+
+// Seconds since bus data was loaded from the internet
+static int s_sec_since_update = 0;
 
 // false=bus list, true=zoom current bus
 static bool s_zooming = false;
@@ -250,22 +253,21 @@ static void update_bus_text_layers()
 {
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        const int base_index = NUM_BUSES_PER_PAGE * s_current_page;
-        const int bus_index = base_index + i;
+        const struct Bus *const bus = s_buses + ( NUM_BUSES_PER_PAGE * s_current_page + i );
 
         set_bus_text_layer( i,
-            s_buses[ bus_index ].line_string,
-            get_line_color( s_buses[ bus_index ].line_string ),
-            s_buses[ bus_index ].dest_string,
-            s_buses[ bus_index ].eta_string );
+            bus->line_string,
+            get_line_color( bus->line_string ),
+            bus->dest_string,
+            bus->eta_string );
     }
 
     // Make texts for zoom mode
-    const int idx = s_current_bus + NUM_BUSES_PER_PAGE * s_current_page;
-    strcpy( s_zoom_line_buf, s_buses[ idx ].line_string);
+    const struct Bus *const bus = s_buses + ( s_current_bus + NUM_BUSES_PER_PAGE * s_current_page );
+    strcpy( s_zoom_line_buf, bus->line_string);
     strcat( s_zoom_line_buf, " ");
-    strcat( s_zoom_line_buf, s_buses[ idx ].dest_string);
-    text_layer_set_text( s_zoom_eta_layer, s_buses[ idx ].eta_string );
+    strcat( s_zoom_line_buf, bus->dest_string);
+    text_layer_set_text( s_zoom_eta_layer, bus->eta_string );
     text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
 
     // Average walking speed is 4 km/h (faster when walking steadily but
@@ -275,7 +277,7 @@ static void update_bus_text_layers()
     // the precision we're working at, is the ETA below which we show the
     // counter in red. Add 50 for 5/4 rounding.
     const int limit = 1 + ( ( s_bus_stop_dist + 50 ) / 100 ) * 3 / 2;
-    const bool red = atoi( s_buses[ idx ].eta_string ) <= limit;
+    const bool red = atoi( bus->eta_string ) <= limit;
     text_layer_set_text_color( s_zoom_background_layer,         red ? GColorYellow : GColorBlack );
     text_layer_set_text_color( s_zoom_eta_layer,                red ? GColorYellow : GColorBlack );
     text_layer_set_background_color( s_zoom_background_layer,   red ? GColorDarkCandyAppleRed : GColorWhite );
@@ -597,12 +599,23 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
+            s_sec_since_update = 0;
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
         default:
         // intentionally left blank
         break;
+    }
+}
+
+void bus_display_estimate_eta( int sec_since_update )
+{
+    s_sec_since_update = sec_since_update;
+
+    if ( window_stack_contains_window( s_bus_display_wnd ) )
+    {
+        update_bus_text_layers();
     }
 }
 

@@ -127,6 +127,13 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
         s_secs_before_next_update = UPDATE_EVERY_SECS;
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();
+
+        // If we are offline, update bus list with ETA estimates based
+        // on latest info and time elapsed since
+        if( s_offline )
+        {
+            bus_display_estimate_eta( s_secs_since_update );
+        }
     }
 }
 

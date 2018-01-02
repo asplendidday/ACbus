@@ -10,5 +10,5 @@ void bus_display_destroy();
 void bus_display_show();
 
 void bus_display_handle_msg_tuple( Tuple* msg_tuple );
-
+void bus_display_estimate_eta( int offline_sec );
 void bus_display_set_update_status( bool offline );
