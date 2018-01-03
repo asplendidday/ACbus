@@ -615,6 +615,8 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
 
 void bus_display_estimate_eta( int sec_since_update )
 {
+    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reducing last loaded ETAs by %d s", sec_since_update );
+
     s_sec_since_update = sec_since_update;
 
     // Compute "fixed ETA" (estimated ETA based on last known ETA and time

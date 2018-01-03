@@ -42,6 +42,13 @@ static void refresh_update_status()
         s_offline = offline;
         bus_display_set_update_status( offline );
         bus_stop_selection_set_update_status( offline );
+
+        // If we are offline, update bus list with ETA estimates based
+        // on latest info and time elapsed since
+        if( offline )
+        {
+            bus_display_estimate_eta( s_secs_since_update );
+        }
     }
  }
 
