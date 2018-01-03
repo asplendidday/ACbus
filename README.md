@@ -18,6 +18,7 @@ I implemented the following changes:
 * Zoom mode has red background if bus stop is too far away to reach before the bus arrives.
 * Reload bus data from the ASEAG server every 20 seconds instead of 30.
 * Don't display time since last update all the time. Instead, show a message if there was no update for >30 seconds.
+* If offline (=no update of bus data for >30 seconds), estimate bus arrival times based on time since last update.
 * Change all messages to German.
 * Several fixes and optimizations (details in git log).
 
