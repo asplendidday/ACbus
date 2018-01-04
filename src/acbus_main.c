@@ -18,7 +18,7 @@
 //==================================================================================================
 // Variables
 
-static int s_secs_since_update = 0;
+int s_secs_since_update = 0;
 static int s_secs_before_next_update = 2;
 static bool s_offline = false;
 
@@ -47,7 +47,7 @@ static void refresh_update_status()
         // on latest info and time elapsed since
         if( offline )
         {
-            bus_display_estimate_eta( s_secs_since_update );
+            bus_display_update();
         }
     }
  }
@@ -123,12 +123,13 @@ static void send_update_request()
 
 static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
-    // NOTE: This function is called once per second so keep it quick
+    // NOTE: This function is called once per second so keep it fast
 
     ++s_secs_since_update;
 
     refresh_update_status();
    
+    // Trigger another update (=data reload from Internet) when due
     if (--s_secs_before_next_update <= 0 )
     {   
         s_secs_before_next_update = UPDATE_EVERY_SECS;
@@ -139,7 +140,7 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
         // on latest info and time elapsed since
         if( s_offline )
         {
-            bus_display_estimate_eta( s_secs_since_update );
+            bus_display_update();
         }
     }
 }

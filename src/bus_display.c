@@ -68,7 +68,7 @@ static struct Bus {
 } s_buses[ NUM_BUSES ];
 
 // Seconds since bus data was loaded from the internet
-static int s_sec_since_update = 0;
+extern int s_secs_since_update;
 
 // false=bus list, true=zoom current bus
 static bool s_zooming = false;
@@ -259,7 +259,7 @@ static void update_bus_text_layers()
         if( bus->line_string[ 0 ] )
         {
             // Reduce ETA by the time since last update
-            if ( bus->eta_sec < s_sec_since_update )
+            if ( bus->eta_sec < s_secs_since_update )
             {
                 // Bus is probably gone, but we don't know for sure
                 strcpy( bus->eta_string, "?" );
@@ -269,7 +269,7 @@ static void update_bus_text_layers()
                 // Reduce this bus' ETA by the number of seconds since the
                 // last update and convert to minutes
                 snprintf( bus->eta_string, sizeof( bus->eta_string ),
-                    "%d", (bus->eta_sec - s_sec_since_update) / 60 );
+                    "%d", (bus->eta_sec - s_secs_since_update) / 60 );
             }
         }
         else
@@ -619,7 +619,6 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
         break;
         case BUS_DATA:
         {
-            s_sec_since_update = 0;
             parse_bus_data( msg_tuple->value->cstring );
         }
         break;
@@ -629,14 +628,8 @@ void bus_display_handle_msg_tuple( Tuple* msg_tuple )
     }
 }
 
-void bus_display_estimate_eta( int sec_since_update )
+void bus_display_update()
 {
-    APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reducing last loaded ETAs by %d s", sec_since_update );
-
-    // Store it
-    s_sec_since_update = sec_since_update;
-
-    // Update the display if we are currently visible
     if ( window_stack_contains_window( s_bus_display_wnd ) )
     {
         update_bus_text_layers();
