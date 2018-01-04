@@ -63,8 +63,8 @@ static struct {
 static struct Bus {
     char line_string[ LINE_BUFFER_SIZE ];
     char dest_string[ DEST_BUFFER_SIZE ];
+    int eta_sec;
     char eta_string[ ETA_BUFFER_SIZE ];
-    char eta_fixed[ ETA_BUFFER_SIZE ];
 } s_buses[ NUM_BUSES ];
 
 // Seconds since bus data was loaded from the internet
@@ -253,13 +253,37 @@ static void update_bus_text_layers()
 {
     for( int i = 0; i < NUM_BUSES_PER_PAGE; ++i )
     {
-        const struct Bus *const bus = s_buses + ( NUM_BUSES_PER_PAGE * s_current_page + i );
+        struct Bus *const bus = s_buses + ( NUM_BUSES_PER_PAGE * s_current_page + i );
 
+        // If there is a bus in this line, make its ETA in minutes as a string
+        if( bus->line_string[ 0 ] )
+        {
+            // Reduce ETA by the time since last update
+            if ( bus->eta_sec < s_sec_since_update )
+            {
+                // Bus is probably gone, but we don't know for sure
+                strcpy( bus->eta_string, "?" );
+            }
+            else
+            {
+                // Reduce this bus' ETA by the number of seconds since the
+                // last update and convert to minutes
+                snprintf( bus->eta_string, sizeof( bus->eta_string ),
+                    "%d", (bus->eta_sec - s_sec_since_update) / 60 );
+            }
+        }
+        else
+        {
+            // No bus in this line
+            bus->eta_string[ 0 ] = '\0';
+        }
+
+        // Put everything into the display layers
         set_bus_text_layer( i,
             bus->line_string,
             get_line_color( bus->line_string ),
             bus->dest_string,
-            s_sec_since_update > 0 ? bus->eta_fixed : bus->eta_string );
+            bus->eta_string );
     }
 
     // Make texts for zoom mode
@@ -267,7 +291,7 @@ static void update_bus_text_layers()
     strcpy( s_zoom_line_buf, bus->line_string);
     strcat( s_zoom_line_buf, " ");
     strcat( s_zoom_line_buf, bus->dest_string);
-    text_layer_set_text( s_zoom_eta_layer, s_sec_since_update > 0 ? bus->eta_fixed : bus->eta_string );
+    text_layer_set_text( s_zoom_eta_layer, bus->eta_string );
     text_layer_set_text( s_zoom_line_layer, s_zoom_line_buf );
 
     // Average walking speed is 4 km/h (faster when walking steadily but
@@ -277,7 +301,7 @@ static void update_bus_text_layers()
     // the precision we're working at, is the ETA below which we show the
     // counter in red. Add 50 for 5/4 rounding.
     const int limit = 1 + ( ( s_bus_stop_dist + 50 ) / 100 ) * 3 / 2;
-    const bool red = atoi( bus->eta_string ) <= limit;
+    const bool red = bus->eta_sec / 60 <= limit;
     text_layer_set_text_color( s_zoom_background_layer,         red ? GColorYellow : GColorBlack );
     text_layer_set_text_color( s_zoom_eta_layer,                red ? GColorYellow : GColorBlack );
     text_layer_set_background_color( s_zoom_background_layer,   red ? GColorDarkCandyAppleRed : GColorWhite );
@@ -342,7 +366,7 @@ static void parse_bus_data( const char* bus_data )
     {
         strcpy( cur_line, s_buses[ cur_idx ].line_string );
         strcpy( cur_dest, s_buses[ cur_idx ].dest_string );
-        cur_eta = atoi(s_buses[ cur_idx ].eta_string);
+        cur_eta = s_buses[ cur_idx ].eta_sec;
     }
     else
     {
@@ -369,16 +393,16 @@ static void parse_bus_data( const char* bus_data )
             // Where we put this bus' data
             char *const line = s_buses[ i ].line_string;
             char *const dest = s_buses[ i ].dest_string;
-            char *const etaS = s_buses[ i ].eta_string;
-            char *const etaF = s_buses[ i ].eta_fixed;
+            int  *const etas = &s_buses[ i ].eta_sec;
+            char etaB[ 6+1 ];
 
             // Scan this bus' data into the display buffers
             bus_data = common_read_csv_item( bus_data, line, LINE_BUFFER_SIZE );
             bus_data = common_read_csv_item( bus_data, dest, DEST_BUFFER_SIZE );
-            bus_data = common_read_csv_item( bus_data, etaS, ETA_BUFFER_SIZE );
+            bus_data = common_read_csv_item( bus_data, etaB, sizeof( etaB ) );
 
-            // Reset fixed ETA because we have fresh data
-            strcpy( etaF, etaS );
+            // Store ETA in seconds
+            *etas = atoi( etaB );
 
             // So we got another bus
             ++s_num_buses_transmitted;
@@ -392,7 +416,7 @@ static void parse_bus_data( const char* bus_data )
                 // same destination and different line, if there is one).
                 // Note that ETA is always < 100.
                 const int delta
-                    = abs( cur_eta - atoi( etaS ) )
+                    = abs( cur_eta - *etas )
                     + strcmp( line, cur_line ) ? 100 : 0;
                 if ( best_idx < 0 || delta < best_delta )
                 {
@@ -609,36 +633,8 @@ void bus_display_estimate_eta( int sec_since_update )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reducing last loaded ETAs by %d s", sec_since_update );
 
+    // Store it
     s_sec_since_update = sec_since_update;
-
-    // Compute "fixed ETA" (estimated ETA based on last known ETA and time
-    // since last update) for all buses
-    int i;
-    struct Bus* bus;
-    for( i = 0, bus=s_buses; i < NUM_BUSES; ++i, ++bus )
-    {
-        if( bus->eta_string[ 0 ] )
-        {
-            // Reduce ETA by the time since last update
-            const int s = atoi( bus->eta_string ) * 60;
-            if ( s < sec_since_update )
-            {
-                // Bus is probably gone, but we don't know for sure
-                strcpy( bus->eta_fixed, "?" );
-            }
-            else
-            {
-                // Reduce this bus' ETA by the number of seconds since the
-                // last update and convert back to minutes
-                snprintf( bus->eta_fixed, sizeof( bus->eta_fixed ), "%d", (s - sec_since_update) / 60 );
-            }
-        }
-        else
-        {
-            // No bus in this line
-            bus->eta_fixed[ 0 ] = '\0';
-        }
-    }
 
     // Update the display if we are currently visible
     if ( window_stack_contains_window( s_bus_display_wnd ) )

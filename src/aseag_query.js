@@ -168,12 +168,12 @@ function compileListOfNextBuses( buses ) {
 
     for( var j = 0; j < buses.length; ++j ) {
 
-        // Compute minutes until the bus arrives
-        var eta = Math.round( buses[ j ].eta / ( 1000 * 60 ) );
+        // Compute seconds until the bus arrives
+        var eta = Math.round( buses[ j ].eta / 1000 );
 
         // We can display only two digits of ETA, and who wants to wait
         // for more than 99 minutes?
-        if (eta > 99) break;
+        if (eta > 99 * 60) break;
 
         // Make result line for this bus
         var this_bus = buses[ j ].number + ';' + buses[ j ].dest + ';' + eta;
