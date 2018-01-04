@@ -11,4 +11,4 @@ void bus_display_show();
 
 void bus_display_handle_msg_tuple( Tuple* msg_tuple );
 void bus_display_update();
-void bus_display_set_update_status( bool offline );
+void bus_display_set_online_status( bool offline );

@@ -256,7 +256,7 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
 // GPS coord query
 
 function determineClosestBusStop( requested_bus_stop_id ) {
-    console.log( '[ACbus] ######## Initiated new bus stop update.' );
+    console.log( '[ACbus] Initiated bus stop reload.' );
     console.log( '[ACbus] Querying current GPS coordinates.' );
     
     navigator.geolocation.getCurrentPosition(

@@ -19,8 +19,8 @@
 //==================================================================================================
 // Variables
 
-int s_secs_since_update = 0;
-static int s_secs_before_next_update = 2;
+int s_secs_since_reload = 0;
+static int s_secs_before_reload = 2;
 static bool s_offline = false;
 
 
@@ -28,21 +28,21 @@ static bool s_offline = false;
 //==================================================================================================
 // Helper functions
 
-static void refresh_update_status()
+static void refresh_online_status()
 {
     // NOTE: This function is called once per second so keep it fast
 
-    // Allow half the update interval for the actual update before
+    // Allow half the reload interval for the actual reload before
     // declaring ourselves offline.
-    const bool offline = s_secs_since_update > RELOAD_SECONDS * 3 / 2;
+    const bool offline = s_secs_since_reload > RELOAD_SECONDS * 3 / 2;
 
     if ( offline != s_offline )
     {
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Connection status is now o%sline", offline ? "ff" : "n" );
 
         s_offline = offline;
-        bus_display_set_update_status( offline );
-        bus_stop_selection_set_update_status( offline );
+        bus_display_set_online_status( offline );
+        bus_stop_selection_set_online_status( offline );
     }
  }
 
@@ -62,8 +62,8 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
         // if bus stop data is in the message, it is a success
         if( t->key == BUS_STOP_DATA )
         {
-            s_secs_since_update = 0;
-            s_secs_before_next_update = RELOAD_SECONDS;
+            s_secs_since_reload = 0;
+            s_secs_before_reload = RELOAD_SECONDS;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -83,8 +83,8 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
 
-    // Try again sooner than we would if the update had succeeded
-    s_secs_before_next_update = RELOAD_SECONDS / 3;
+    // Try again sooner than we would if the reload had succeeded
+    s_secs_before_reload = RELOAD_SECONDS / 3;
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -97,7 +97,7 @@ static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 //==================================================================================================
 // Update request message
 
-static void send_update_request()
+static void send_reload_request()
 {
     DictionaryIterator* iter = NULL;
     app_message_outbox_begin( &iter );
@@ -107,7 +107,7 @@ static void send_update_request()
     
     app_message_outbox_send();
 
-    refresh_update_status();
+    refresh_online_status();
 }
 
 
@@ -119,25 +119,25 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
     // NOTE: This function is called once per second so keep it fast
 
-    // Count seconds since last update
-    ++s_secs_since_update;
+    // Count seconds since last reload
+    ++s_secs_since_reload;
 
     // Check if we switched from online to offline or vice-versa, and
     // update the status display accordingly
-    refresh_update_status();
+    refresh_online_status();
 
     // When due, update the display with ETAs re-computed based on
     // time since last reload
-    if ( ( s_secs_since_update % UPDATE_SECONDS ) == 0 )
+    if ( ( s_secs_since_reload % UPDATE_SECONDS ) == 0 )
     {
         bus_display_update();
     }
    
-    // Trigger another update (=data reload from Internet) when due
-    if (--s_secs_before_next_update <= 0 )
+    // Trigger another reload from the Internet when due
+    if (--s_secs_before_reload <= 0 )
     {   
-        s_secs_before_next_update = RELOAD_SECONDS;
-        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
+        s_secs_before_reload = RELOAD_SECONDS;
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus data reload." );
         common_get_update_callback()();
     }
 }
@@ -157,7 +157,7 @@ static void tap_handler( AccelAxisType axis, int32_t direction )
 static void init()
 {
     // set up global common state
-    common_set_update_callback( send_update_request );
+    common_set_update_callback( send_reload_request );
     
     // init windows
     bus_stop_selection_create();

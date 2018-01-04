@@ -68,7 +68,7 @@ static struct Bus {
 } s_buses[ NUM_BUSES ];
 
 // Seconds since bus data was loaded from the internet
-extern int s_secs_since_update;
+extern int s_secs_since_reload;
 
 // false=bus list, true=zoom current bus
 static bool s_zooming = false;
@@ -258,8 +258,8 @@ static void update_bus_text_layers()
         // If there is a bus in this line, make its ETA in minutes as a string
         if( bus->line_string[ 0 ] )
         {
-            // Reduce ETA by the time since last update
-            if ( bus->eta_sec < s_secs_since_update )
+            // Reduce ETA by the time since last reload
+            if ( bus->eta_sec < s_secs_since_reload )
             {
                 // Bus is probably gone, but we don't know for sure
                 strcpy( bus->eta_string, "?" );
@@ -267,9 +267,9 @@ static void update_bus_text_layers()
             else
             {
                 // Reduce this bus' ETA by the number of seconds since the
-                // last update and convert to minutes
+                // last reload and convert to minutes
                 snprintf( bus->eta_string, sizeof( bus->eta_string ),
-                    "%d", (bus->eta_sec - s_secs_since_update) / 60 );
+                    "%d", ( bus->eta_sec - s_secs_since_reload ) / 60 );
             }
         }
         else
@@ -632,15 +632,15 @@ void bus_display_update()
 {
     if ( window_stack_contains_window( s_bus_display_wnd ) )
     {
-        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reloaded %d seconds ago, updating ETAs", s_secs_since_update );
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reloaded %d seconds ago, updating ETAs", s_secs_since_reload );
         update_bus_text_layers();
     }
 }
 
 /*
- * status_text==NULL if we are online, else offline message.
+ * If offline==true, show the "offline" message, else hide it.
  */
-void bus_display_set_update_status( bool offline )
+void bus_display_set_online_status( bool offline )
 {
     if( s_bus_display_offline )
     {

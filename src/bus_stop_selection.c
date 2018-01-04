@@ -273,9 +273,9 @@ void bus_stop_selection_handle_msg_tuple( Tuple* msg_tuple )
 }
 
 /*
- * status_text==NULL if we are online, else offline message.
+ * If offline==true, show the "offline" message, else hide it.
  */
-void bus_stop_selection_set_update_status( bool offline )
+void bus_stop_selection_set_online_status( bool offline )
 {
     if( s_bus_stop_sel_offline )
     {
