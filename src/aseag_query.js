@@ -182,15 +182,16 @@ function compileListOfNextBuses( buses ) {
         if( this_bus == prev_bus ) continue;
 
         // Append this bus to the result
-        bus_data += ';' + this_bus;
+        if( bus_data != '' ) {
+            bus_data += ';';
+        }
+        bus_data += this_bus;
         prev_bus = this_bus;
 
         // Count buses and stop when we have enough (3 pages à 7 buses)
         if ( ++num_buses >= 21 ) break;
     }
-    
-    bus_data = num_buses + bus_data;
-    
+
     console.log( '[ACbus] Compiled list of next ' + num_buses + ' buses: ' + bus_data ); 
     return bus_data;
 }

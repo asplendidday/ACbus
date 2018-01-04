@@ -354,19 +354,8 @@ static void parse_bus_data( const char* bus_data )
     // Initialize bus array
     memset( s_buses, 0, sizeof( s_buses ) );
 
-    // Find out how many buses we received
-    if( *bus_data )
-    {
-        char num_buses_string[ 8 ];
-        bus_data = common_read_csv_item( bus_data, num_buses_string, sizeof( num_buses_string ) );
-        s_num_buses_transmitted = atoi( num_buses_string );
-        // Ok by what do we need it for in bus_data? Could just as well count
-        // the buses we scan in the following loop ...
-    }
-    else
-    {
-        s_num_buses_transmitted = 0;
-    }
+    // Count how many buses we got
+    s_num_buses_transmitted = 0;
 
     // Copy new buses into display buffers, and find the index of the best
     // match for the bus the cursor is on. best_delta is the difference
@@ -390,6 +379,9 @@ static void parse_bus_data( const char* bus_data )
 
             // Reset fixed ETA because we have fresh data
             strcpy( etaF, etaS );
+
+            // So we got another bus
+            ++s_num_buses_transmitted;
 
             // Check best match for cursor position
             if ( ! strcmp( dest, cur_dest ) )
