@@ -632,6 +632,7 @@ void bus_display_update()
 {
     if ( window_stack_contains_window( s_bus_display_wnd ) )
     {
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Reloaded %d seconds ago, updating ETAs", s_secs_since_update );
         update_bus_text_layers();
     }
 }

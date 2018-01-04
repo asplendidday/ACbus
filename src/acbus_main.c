@@ -7,8 +7,9 @@
 //==================================================================================================
 // Definitions
 
-// Seconds after a successful update before we trigger the next update
-#define UPDATE_EVERY_SECS    20
+// Update intervals in seconds to:
+#define UPDATE_SECONDS  10                      // - update the display with current ETA
+#define RELOAD_SECONDS  ( UPDATE_SECONDS * 3 )  // - reload data from Internet
 
 // 1 to reload bus data when shaking the watch.
 // 0 to conserve battery.
@@ -31,9 +32,9 @@ static void refresh_update_status()
 {
     // NOTE: This function is called once per second so keep it fast
 
-    // Allow half the update frequency for the actual update before
+    // Allow half the update interval for the actual update before
     // declaring ourselves offline.
-    const bool offline = s_secs_since_update > UPDATE_EVERY_SECS * 3 / 2;
+    const bool offline = s_secs_since_update > RELOAD_SECONDS * 3 / 2;
 
     if ( offline != s_offline )
     {
@@ -42,13 +43,6 @@ static void refresh_update_status()
         s_offline = offline;
         bus_display_set_update_status( offline );
         bus_stop_selection_set_update_status( offline );
-
-        // If we are offline, update bus list with ETA estimates based
-        // on latest info and time elapsed since
-        if( offline )
-        {
-            bus_display_update();
-        }
     }
  }
 
@@ -69,7 +63,7 @@ static void inbox_received_callback( DictionaryIterator* iterator, void* context
         if( t->key == BUS_STOP_DATA )
         {
             s_secs_since_update = 0;
-            s_secs_before_next_update = UPDATE_EVERY_SECS;
+            s_secs_before_next_update = RELOAD_SECONDS;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -90,7 +84,7 @@ static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResu
              common_app_message_result_to_string( reason ) );
 
     // Try again sooner than we would if the update had succeeded
-    s_secs_before_next_update = UPDATE_EVERY_SECS / 3;
+    s_secs_before_next_update = RELOAD_SECONDS / 3;
 }
 
 static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
@@ -125,23 +119,26 @@ static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
     // NOTE: This function is called once per second so keep it fast
 
+    // Count seconds since last update
     ++s_secs_since_update;
 
+    // Check if we switched from online to offline or vice-versa, and
+    // update the status display accordingly
     refresh_update_status();
+
+    // When due, update the display with ETAs re-computed based on
+    // time since last reload
+    if ( ( s_secs_since_update % UPDATE_SECONDS ) == 0 )
+    {
+        bus_display_update();
+    }
    
     // Trigger another update (=data reload from Internet) when due
     if (--s_secs_before_next_update <= 0 )
     {   
-        s_secs_before_next_update = UPDATE_EVERY_SECS;
+        s_secs_before_next_update = RELOAD_SECONDS;
         APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
         common_get_update_callback()();
-
-        // If we are offline, update bus list with ETA estimates based
-        // on latest info and time elapsed since
-        if( s_offline )
-        {
-            bus_display_update();
-        }
     }
 }
 
