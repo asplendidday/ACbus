@@ -24,4 +24,4 @@ I implemented the following changes:
 To install it on your Pebble, open the pbw file in the Pebble app on your phone, or (after intalling the Pebble SDK on your computer) build it from source and use the `pebble install` command.
 
 ---
-*Wolfram Rösler • wolfram@roesler-ac.de • https://github.com/wolframroesler • https://twitter.com/wolframroesler • https://www.linkedin.com/in/wolframroesler/*
+*Wolfram Rösler • wolfram@roesler-ac.de • https://gitlab.com/wolframroesler • https://twitter.com/wolframroesler • https://www.linkedin.com/in/wolframroesler/*
