@@ -262,7 +262,7 @@ static void update_bus_text_layers()
             if ( bus->eta_sec < s_secs_since_reload )
             {
                 // Bus is probably gone, but we don't know for sure
-                strcpy( bus->eta_string, "?" );
+                strcpy( bus->eta_string, "0" );
             }
             else
             {
