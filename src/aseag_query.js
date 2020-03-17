@@ -15,18 +15,12 @@ function degToRad( angleInDeg ) {
     return angleInDeg / 180.0 * Math.PI;
 }
 
-function killUmlauts( string ) {
-    return string.replace( 'ß', 'ss' ).replace( 'ö', 'oe' ).replace( 'ä', 'ae' ).replace( 'ü', 'ue' );
-}
-
 function removeQuotes( string ) {
     return string.slice( 1, string.length - 1);
 }
 
 function cleanUpBusStopName( bus_stop_name ) {
-    bus_stop_name = removeQuotes( bus_stop_name );
-    bus_stop_name = killUmlauts( bus_stop_name );
-    return bus_stop_name;
+    return removeQuotes( bus_stop_name );
 }
 
 
@@ -125,7 +119,7 @@ function compileListOfClosestBusStops( bus_stops, num_closest_bus_stops ) {
     
     for( var j = 0; j < num_bus_stops; ++j ) {
         bus_stop_data += bus_stops[ j ].name + ';' +
-                         ( Math.round( bus_stops[ j ].dist / 100 ) / 10 ) + ' km;' +
+                         Math.round( bus_stops[ j ].dist ) + ';' +
                          bus_stops[ j ].id;
         if( j + 1 < num_bus_stops ) {
             bus_stop_data += ";";
@@ -151,7 +145,7 @@ function parseBuses( response_text ) {
         var bus = {
             number: removeQuotes( bus_line[ 2 ] ),
             dest:   cleanUpBusStopName( bus_line[ 3 ] ),
-            eta:    bus_line[ 4 ] - global_now
+            eta:    Math.max( bus_line[ 4 ] - global_now, 0 )
         };
 
         buses.push( bus );
@@ -161,26 +155,43 @@ function parseBuses( response_text ) {
     return buses;
 }
 
-function compileListOfNextBuses( buses, num_next_buses ) {
+function compileListOfNextBuses( buses ) {
+
     // order list with respect to estimated time of arrival
     buses.sort( function( lhs, rhs ) {
         return lhs.eta - rhs.eta;
     } );
     
-    var num_buses = Math.min( num_next_buses, buses.length );
+    var num_buses = 0;
     var bus_data = "";
+    var prev_bus = "";
 
-    for( var j = 0; j < num_buses; ++j ) {
-        bus_data += buses[ j ].number + ';' +
-                    buses[ j ].dest + ';' +
-                    Math.round( buses[ j ].eta / ( 1000 * 60 ) );
-        if( j + 1 < num_buses ) {
-            bus_data += ";";
+    for( var j = 0; j < buses.length; ++j ) {
+
+        // Compute seconds until the bus arrives
+        var eta = Math.round( buses[ j ].eta / 1000 );
+
+        // We can display only two digits of ETA, and who wants to wait
+        // for more than 99 minutes?
+        if (eta > 99 * 60) break;
+
+        // Make result line for this bus
+        var this_bus = buses[ j ].number + ';' + buses[ j ].dest + ';' + eta;
+
+        // Sometimes the same bus appears twice in the input
+        if( this_bus == prev_bus ) continue;
+
+        // Append this bus to the result
+        if( bus_data != '' ) {
+            bus_data += ';';
         }
+        bus_data += this_bus;
+        prev_bus = this_bus;
+
+        // Count buses and stop when we have enough (3 pages à 7 buses)
+        if ( ++num_buses >= 21 ) break;
     }
-    
-    bus_data = num_buses + ';' + bus_data;
-    
+
     console.log( '[ACbus] Compiled list of next ' + num_buses + ' buses: ' + bus_data ); 
     return bus_data;
 }
@@ -226,18 +237,13 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
             
             selected_bus_stop_name = requested_bus_stop_name;
             selected_bus_stop_id = requested_bus_stop_id;
-            
-            bus_stop_data = requested_bus_stop_name + ';' +
-                            ( Math.round( requested_bus_stop_distance / 100 ) / 10 ) + ' km;' +
-                            requested_bus_stop_id + ';' +
-                            bus_stop_data; 
         }
    
         xhrRequest( query_url_bus + selected_bus_stop_id, 'GET', function( response_text ) {
             console.log( '[ACbus] Getting next buses for ' + selected_bus_stop_name + '.' );
 
             var buses = parseBuses( response_text );
-            var bus_data = compileListOfNextBuses( buses, 21 );            
+            var bus_data = compileListOfNextBuses( buses );
             
             sendUpdate( bus_stop_data, bus_data );
         } );
@@ -250,7 +256,7 @@ function findClosestBusStopForCoords( coords, requested_bus_stop_id ) {
 // GPS coord query
 
 function determineClosestBusStop( requested_bus_stop_id ) {
-    console.log( '[ACbus] ######## Initiated new bus stop update.' );
+    console.log( '[ACbus] Initiated bus stop reload.' );
     console.log( '[ACbus] Querying current GPS coordinates.' );
     
     navigator.geolocation.getCurrentPosition(
@@ -289,7 +295,7 @@ Pebble.addEventListener( 'appmessage',
 
         var stringified = JSON.stringify( e.payload );
         var request = JSON.parse( stringified );
-        console.log( JSON.stringify( e.payload ) );
+        console.log( '[ACbus] payload:', JSON.stringify( e.payload ) );
                 
         var requested_bus_stop_id = request.REQ_BUS_STOP_ID;
         var update_bus_stop_list = request.REQ_UPDATE_BUS_STOP_LIST;

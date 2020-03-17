@@ -9,7 +9,7 @@
         "location"
     ],
     "companyName": "Cavemen",
-    "longName": "ACbus",
+    "longName": "ASEAG",
     "projectType": "native",
     "resources": {
         "media": [
@@ -46,12 +46,12 @@
         ]
     },
     "sdkVersion": "3",
-    "shortName": "ACbus",
+    "shortName": "ASEAG",
     "targetPlatforms": [
         "basalt"
     ],
     "uuid": "660c6e49-5223-4c6f-aaa1-ca80bd8a9a7c",
-    "versionLabel": "0.9",
+    "versionLabel": "1.1",
     "watchapp": {
         "watchface": false
     }

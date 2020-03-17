@@ -7,86 +7,63 @@
 //==================================================================================================
 // Definitions
 
-#define UPDATE_FREQUENCY_IN_SECS    30
-    
+// Update intervals in seconds to:
+#define UPDATE_SECONDS  10                      // - update the display with current ETA
+#define RELOAD_SECONDS  ( UPDATE_SECONDS * 3 )  // - reload data from Internet
+
+// 1 to reload bus data when shaking the watch.
+// 0 to conserve battery.
+#define RELOAD_ON_TAP 0
     
 //==================================================================================================
 //==================================================================================================
 // Variables
 
-static int s_update_age_counter_in_secs = 0;
-static int s_currently_updating = 0;
-static int s_first_update_performed = 0;
-static int s_first_update_after_n_secs = 2;
+int s_secs_since_reload = 0;
+static int s_secs_before_reload = 2;
+static bool s_offline = false;
+
 
 //==================================================================================================
 //==================================================================================================
 // Helper functions
 
-void refresh_update_status()
+static void refresh_online_status()
 {
-    static char status_text[ 24 ];
-    status_text[ 0 ] = '\0';
-    
-    int minutes = s_update_age_counter_in_secs / 60;
-    int seconds = s_update_age_counter_in_secs % 60;
-    
-    if( s_currently_updating == 1 )
+    // NOTE: This function is called once per second so keep it fast
+
+    // Allow half the reload interval for the actual reload before
+    // declaring ourselves offline.
+    const bool offline = s_secs_since_reload > RELOAD_SECONDS * 3 / 2;
+
+    if ( offline != s_offline )
     {
-        snprintf( status_text, sizeof( "Updating..." ) , "Updating..." );
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Connection status is now o%sline", offline ? "ff" : "n" );
+
+        s_offline = offline;
+        bus_display_set_online_status( offline );
+        bus_stop_selection_set_online_status( offline );
     }
-    else if( s_first_update_performed == 0 )
-    {
-        snprintf( status_text, sizeof( "No updates, yet." ) , "No updates, yet." );
-    }
-    else if( minutes == 0 )
-    {
-        if( seconds < 30 )
-        {
-            snprintf( status_text, sizeof( "Updated <30 secs ago" ) , "Updated <30 secs ago" );
-        }
-        else
-        {
-            snprintf( status_text, sizeof( "Updated <1 min ago" ) , "Updated <1 min ago" );
-        }
-    }
-    else
-    {
-        minutes += ( s_update_age_counter_in_secs > 0 ? 1 : 0 );
-        
-        if( minutes <= 5 )
-        {
-            snprintf( status_text, sizeof( "Updated ~0 mins ago" ), "Updated ~%i mins ago", minutes );
-        }
-        else
-        {
-            snprintf( status_text, sizeof( "Updated >5 mins ago" ) , "Updated >5 mins ago" );
-        }
-    }
-    
-    bus_display_set_update_status_text( status_text );
-    bus_stop_selection_set_update_status_text( status_text );
-}
+ }
 
 
 //==================================================================================================
 //==================================================================================================
 // App message handling
 
-void inbox_received_callback( DictionaryIterator* iterator, void* context )
+static void inbox_received_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Message received!" );
     
     Tuple* t = dict_read_first( iterator );
-    s_currently_updating = 0;
    
     while( t != NULL )
     {
         // if bus stop data is in the message, it is a success
         if( t->key == BUS_STOP_DATA )
         {
-            s_update_age_counter_in_secs = 0;
-            s_first_update_performed = 1;
+            s_secs_since_reload = 0;
+            s_secs_before_reload = RELOAD_SECONDS;
         }
         
         bus_display_handle_msg_tuple( t );
@@ -96,19 +73,21 @@ void inbox_received_callback( DictionaryIterator* iterator, void* context )
     }
 }
 
-void inbox_dropped_callback( AppMessageResult reason, void* context )
+static void inbox_dropped_callback( AppMessageResult reason, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Message dropped!" );
 }
 
-void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
+static void outbox_failed_callback( DictionaryIterator* iterator, AppMessageResult reason, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_ERROR, "[ACbus] Outbox send failed! Reason: %s",
              common_app_message_result_to_string( reason ) );
-    s_currently_updating = 0;
+
+    // Try again sooner than we would if the reload had succeeded
+    s_secs_before_reload = RELOAD_SECONDS / 3;
 }
 
-void outbox_sent_callback( DictionaryIterator* iterator, void* context )
+static void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 {
     APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Outbox send successful." );
 }
@@ -118,22 +97,17 @@ void outbox_sent_callback( DictionaryIterator* iterator, void* context )
 //==================================================================================================
 // Update request message
 
-void send_update_request()
+static void send_reload_request()
 {
-    if( s_currently_updating == 0 )
-    {
-        s_currently_updating = 1;
+    DictionaryIterator* iter = NULL;
+    app_message_outbox_begin( &iter );
     
-        DictionaryIterator* iter = NULL;
-        app_message_outbox_begin( &iter );
-        
-        dict_write_uint32( iter, REQ_BUS_STOP_ID, common_get_current_bus_stop_id() );
-        dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
-        
-        app_message_outbox_send();
-        
-        refresh_update_status();
-    }    
+    dict_write_uint32( iter, REQ_BUS_STOP_ID, common_get_current_bus_stop_id() );
+    dict_write_uint8( iter, REQ_UPDATE_BUS_STOP_LIST, 0 );
+    
+    app_message_outbox_send();
+
+    refresh_online_status();
 }
 
 
@@ -141,39 +115,54 @@ void send_update_request()
 //==================================================================================================
 // Tick handling
 
-void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
+static void tick_handler( struct tm* tick_time, TimeUnits unites_changed )
 {
-    ++s_update_age_counter_in_secs;
-    refresh_update_status();
-    
-    if( s_update_age_counter_in_secs % UPDATE_FREQUENCY_IN_SECS == 0 ||
-        ( s_first_update_performed == 0 && s_update_age_counter_in_secs == s_first_update_after_n_secs ) )
+    // NOTE: This function is called once per second so keep it fast
+
+    // Count seconds since last reload
+    ++s_secs_since_reload;
+
+    // Check if we switched from online to offline or vice-versa, and
+    // update the status display accordingly
+    refresh_online_status();
+
+    // When due, update the display with ETAs re-computed based on
+    // time since last reload
+    if ( ( s_secs_since_reload % UPDATE_SECONDS ) == 0 )
+    {
+        bus_display_update();
+    }
+   
+    // Trigger another reload from the Internet when due
+    if (--s_secs_before_reload <= 0 )
     {   
-        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus update." ); 
+        s_secs_before_reload = RELOAD_SECONDS;
+        APP_LOG( APP_LOG_LEVEL_INFO, "[ACbus] Requesting bus data reload." );
         common_get_update_callback()();
     }
 }
 
-void tap_handler( AccelAxisType axis, int32_t direction )
+#if RELOAD_ON_TAP
+static void tap_handler( AccelAxisType axis, int32_t direction )
 {
     common_get_update_callback()();
 }
+#endif
 
 
 //==================================================================================================
 //==================================================================================================
 // Main and (de)init functions
 
-void init()
+static void init()
 {
     // set up global common state
-    common_set_update_callback( send_update_request );
+    common_set_update_callback( send_reload_request );
     
     // init windows
     bus_stop_selection_create();
-    
     bus_display_create();
-    bus_display_show();
+    bus_stop_selection_show();
     
     // set up app messages
     app_message_register_inbox_received( inbox_received_callback );
@@ -186,10 +175,12 @@ void init()
     tick_timer_service_subscribe( SECOND_UNIT, tick_handler );
     
     // set up tap recognition
+    #if RELOAD_ON_TAP
     accel_tap_service_subscribe( tap_handler );
+    #endif
 }
 
-void deinit()
+static void deinit()
 {
     bus_display_destroy();
     bus_stop_selection_destroy();
